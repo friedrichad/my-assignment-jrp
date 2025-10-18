@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package object;
+package model;
 import java.sql.Date;
 /**
  *
@@ -13,15 +13,8 @@ public class Employee extends BaseObject {
     private boolean gender;
     private java.sql.Date dob;
     private String email;
-    private String role;
-
-    public Employee(String userRealName, boolean gender, Date dob, String email, String role) {
-        this.userRealName = userRealName;
-        this.gender = gender;
-        this.dob = dob;
-        this.email = email;
-        this.role = role;
-    }
+    private Department dept;
+    private Employee supervisor;
 
     public String getUserRealName() {
         return userRealName;
@@ -55,13 +48,20 @@ public class Employee extends BaseObject {
         this.email = email;
     }
 
-    public String getRole() {
-        return role;
+    public Department getDept() {
+        return dept;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setDept(Department dept) {
+        this.dept = dept;
     }
-    
+
+    public Employee getSupervisor() {
+        return supervisor;
+    }
+
+    public void setSupervisor(Employee supervisor) {
+        this.supervisor = supervisor;
+    }
     
 }

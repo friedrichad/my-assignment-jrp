@@ -8,15 +8,14 @@ package model;
  *
  * @author Hiro
  */
-public class Department extends BaseObject{
-    private String deptName;
+public class Division extends BaseObject{
+    private String divisionName;
 
-    public String getDeptName() {
-        return deptName;
+    public String getDivisionName() {
+        return divisionName;
     }
 
-    public void setDeptName(String deptName) {
-        this.deptName = deptName;
-    }
-    
+    public void setDivisionName(String divisionName) {
+        this.divisionName = divisionName;
+    }    
 }

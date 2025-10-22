@@ -13,7 +13,7 @@ public class Employee extends BaseObject {
     private boolean gender;
     private java.sql.Date dob;
     private String email;
-    private Department dept;
+    private Division division;
     private Employee supervisor;
 
     public String getUserRealName() {
@@ -48,13 +48,15 @@ public class Employee extends BaseObject {
         this.email = email;
     }
 
-    public Department getDept() {
-        return dept;
+    public Division getDivision() {
+        return division;
     }
 
-    public void setDept(Department dept) {
-        this.dept = dept;
+    public void setDivision(Division division) {
+        this.division = division;
     }
+
+   
 
     public Employee getSupervisor() {
         return supervisor;

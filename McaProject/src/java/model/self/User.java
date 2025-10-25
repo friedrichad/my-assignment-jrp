@@ -11,34 +11,30 @@ import java.util.ArrayList;
  *
  * @author Hiro
  */
-public class UserAccount extends BaseObject{
-    private String displayName;
-    private String userName;
+public class User extends BaseObject{
+    private String disname;
+    private String account;
     private String password;
     private Employee employee;
     private ArrayList<Role> roles = new ArrayList<>();
+    private boolean isActive;
 
-    public UserAccount(int id,String displayName, String userName, String password) {
-        this.setId(id);
-        this.displayName = displayName;
-        this.userName = userName;
-        this.password = password;
+    
+
+    public String getDisname() {
+        return disname;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public void setDisname(String disname) {
+        this.disname = disname;
     }
 
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+    public String getAccount() {
+        return account;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setAccount(String account) {
+        this.account = account;
     }
 
     public String getPassword() {
@@ -64,4 +60,13 @@ public class UserAccount extends BaseObject{
     public void setRoles(ArrayList<Role> roles) {
         this.roles = roles;
     }
+
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+    
 }

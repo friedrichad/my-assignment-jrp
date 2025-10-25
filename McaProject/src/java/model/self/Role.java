@@ -11,7 +11,7 @@ import model.BaseObject;
  */
 public class Role extends BaseObject{
     private String roleName;
-    private ArrayList<UserAccount> users = new ArrayList<>();
+    private ArrayList<User> users = new ArrayList<>();
     private ArrayList<Feature> features = new ArrayList<>();
 
     public String getRoleName() {
@@ -22,11 +22,11 @@ public class Role extends BaseObject{
         this.roleName = roleName;
     }
 
-    public ArrayList<UserAccount> getUsers() {
+    public ArrayList<User> getUsers() {
         return users;
     }
 
-    public void setUsers(ArrayList<UserAccount> users) {
+    public void setUsers(ArrayList<User> users) {
         this.users = users;
     }
 

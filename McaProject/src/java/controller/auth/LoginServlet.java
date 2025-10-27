@@ -45,7 +45,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("user", user);
             response.sendRedirect("home");
         } else {
-            request.setAttribute("error", "Sai tài khoản hoặc mật khẩu!");
+            request.setAttribute("error", "Incorrect username or password!");
             request.getRequestDispatcher("view/auth/login.jsp").forward(request, response);
         }
     }

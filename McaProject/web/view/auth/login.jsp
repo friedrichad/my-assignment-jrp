@@ -3,65 +3,101 @@
 <html>
     <head>
         <title>Login</title>
-        <!-- Liên kết CSS đúng với context path -->
+        <!-- Link Sakura CSS -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
         <style>
-            body {
-                font-family: sans-serif;
-                background: #f6f6f6;
+          
+
+            .container {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .login-box {
-                width: 320px;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                border: 1px solid #1d7484; /* màu xanh chủ đạo của Sakura */
-                border-radius: 4px;
-                padding: 20px;
-                background-color: #fff;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+                width: 900px;
+                max-width: 95%;
             }
 
-            .block.input {
+            .image-box {
+                flex: 1;
+                background: #fafafa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .image-box img {
                 width: 100%;
-                margin: 6px 0 12px;
-                padding: 10px;
-                font-weight: normal;
+                max-width: 400px;
+                height: auto;
+                border-radius: 8px;
             }
-            .block.title {
+
+            .login-box {
+                flex: 1;
+                padding: 40px;
+            }
+
+            .login-box h1 {
                 text-align: center;
-                font-size: 1.5em;
-                margin-bottom: 20px;
+                margin-bottom: 24px;
             }
+
+            .login-box input[type="text"],
+            .login-box input[type="password"] {
+                width: 100%;
+                padding: 14px 18px;
+                font-size: 1.1rem;
+                margin-bottom: 16px;
+                box-sizing: border-box;
+            }
+
+            .login-box button {
+                width: 100%;
+                padding: 14px;
+                font-size: 1.2rem;
+            }
+
             .error {
                 text-align: center;
-                margin-top: 10px;
+                margin-top: 12px;
                 color: red;
+                font-weight: bold;
             }
         </style>
     </head>
     <body>
-        <div class="login-box">
-            <div class="block title accent round">🔐 Login</div>
-            <form action="${pageContext.request.contextPath}/login" method="post" class="block">
-                <label class="block">Username:</label>
-                <input type="text" name="account" required class="block input">
-
-                <label class="block">Password:</label>
-                <input type="password" name="password" required class="block input">
-
-                <button type="submit" class="block accent round">Login</button>
-
-                <div class="error block round">
-                    <%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %>
+        <div>
+            <div class="container">
+                <div class="image-box">
+                    <img src="${pageContext.request.contextPath}/assets/images/login-side.png" alt="Login illustration">
                 </div>
-            </form>
+
+                <div class="login-box">
+                    <h1>🔐 Login</h1>
+                    <form action="${pageContext.request.contextPath}/login" method="post">
+                        <label>Username:</label>
+                        <input type="text" name="account" required>
+
+                        <label>Password:</label>
+                        <input type="password" name="password" required>
+
+                        <button type="submit">Login</button>
+
+                        <%
+                            String err = (String) request.getAttribute("error");
+                            if (err != null && !err.isEmpty()) {
+                        %>
+                        <div class="error"><%= err %></div>
+                        <%
+                            }
+                        %>
+                    </form>
+                </div>
+            </div>
         </div>
     </body>
 </html>

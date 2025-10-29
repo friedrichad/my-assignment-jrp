@@ -16,32 +16,41 @@ import model.self.User;
  * @author hiro
  */
 public abstract class BaseAuthenticationController extends HttpServlet {
-    private boolean isAuthenticated(HttpServletRequest req) {
+   private boolean isAuthenticated(HttpServletRequest req) {
         User u = (User) req.getSession().getAttribute("auth");
         return u != null;
     }
-    protected abstract void doPost(HttpServletRequest req, HttpServletResponse resp,User user) throws ServletException, IOException;
-    protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp,User user) throws ServletException, IOException;
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (isAuthenticated(req)) {
 
+    // abstract methods — bắt buộc lớp con phải override
+    protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException;
+
+    protected abstract void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        if (isAuthenticated(req)) {
             User u = (User) req.getSession().getAttribute("auth");
-            doPost(req, resp, u);
+            doGet(req, resp, u);
         } else {
-            resp.getWriter().println("access denied!");
+            // ✅ sửa: forward tuyệt đối (tính từ context root)
+            req.setAttribute("error", "You are not logged yet!");
+            req.getRequestDispatcher("/view/auth/login.jsp").forward(req, resp);
+            // hoặc có thể dùng redirect:
+            // resp.sendRedirect(req.getContextPath() + "/login");
         }
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         if (isAuthenticated(req)) {
-
-             User u = (User) req.getSession().getAttribute("auth");
-            doGet(req, resp, u);
+            User u = (User) req.getSession().getAttribute("auth");
+            doPost(req, resp, u);
         } else {
-            req.setAttribute("error", "You are not logged yet!");
-            req.getRequestDispatcher("../view/auth/login.jsp").forward(req, resp);
+            resp.getWriter().println("Access denied!");
         }
     }
 }

@@ -8,22 +8,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
     <title>MyAssignmentPrj</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin:0; padding:0;}
-        .navbar { background-color: #333; overflow: hidden; }
-        .navbar a { float: left; display: block; color: white; text-align: center;
-                    padding: 14px 16px; text-decoration: none; }
-        .navbar a:hover { background-color: #ddd; color: black; }
-        .content { padding: 20px; }
-    </style>
+    <!-- Link Sakura CSS -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
 </head>
 <body>
-<div class="navbar">
-    <a href="<%=request.getContextPath()%>/index.jsp">Home</a>
-    <a href="<%=request.getContextPath()%>/leave-request">Xin nghỉ phép</a>
-    <a href="<%=request.getContextPath()%>/manage-leave">Quản lý đơn</a>
-    <a href="<%=request.getContextPath()%>/logout">Logout</a>
-</div>
-<div class="content">
+    <header>
+        <nav>
+            <ul style="list-style:none; padding:0; margin:0; display:flex;">
+                <li style="margin-right:16px;"><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
+                <li style="margin-right:16px;"><a href="${pageContext.request.contextPath}/leave-request">Xin nghỉ phép</a></li>
+                <li style="margin-right:16px;"><a href="${pageContext.request.contextPath}/manage-leave">Quản lý đơn</a></li>
+                <li style="margin-right:16px;"><a href="${pageContext.request.contextPath}/logout">Logout</a></li>
+            </ul>
+        </nav>
+        <div style="padding:8px 16px;">
+            <!-- Hiển thị role người dùng -->
+            <%
+                String role = (String) session.getAttribute("role");
+                if (role == null) {
+                    role = "Guest";
+                }
+            %>
+            <p>Role: <strong><%= role %></strong></p>
+        </div>
+    </header>
+
+    <div class="content" style="padding:20px;">
+        <!-- Nội dung trang -->

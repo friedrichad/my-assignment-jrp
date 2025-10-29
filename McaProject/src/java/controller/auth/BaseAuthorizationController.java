@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 package controller.auth;
+
 import dal.RoleDBContext;
 import model.self.Role;
 import model.self.Feature;
@@ -29,31 +30,42 @@ public abstract class BaseAuthorizationController extends BaseAuthenticationCont
             req.getSession().setAttribute("auth", user);
         }
         String url = req.getServletPath();
+        System.out.println("==> Current URL: " + url);
         for (Role role : user.getRoles()) {
             for (Feature feature : role.getFeatures()) {
-                if(feature.getfUrl().equals(url))
+                System.out.println("Feature URL from DB: " + feature.getfUrl());
+            }
+        }
+        for (Role role : user.getRoles()) {
+            for (Feature feature : role.getFeatures()) {
+                if (feature.getfUrl().equals(url)) {
                     return true;
+                }
             }
         }
         return false;
     }
 
     protected abstract void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException;
-    protected abstract void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException ;
+
+    protected abstract void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException;
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        if(isAuthorized(req, user))
+        if (isAuthorized(req, user)) {
             processPost(req, resp, user);
-        else
+        } else {
             resp.getWriter().println("access denied!");
+        }
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        if(isAuthorized(req, user))
+        if (isAuthorized(req, user)) {
             processGet(req, resp, user);
-        else
+        } else {
             resp.getWriter().println("access denied!");
+        }
     }
 
 }

@@ -29,7 +29,7 @@ public class RoleDBContext extends DBContext<BaseObject> {
                                      SELECT r.rid,r.rolename,f.fid,f.url
                                      FROM [User] u INNER JOIN [UserRole] ur ON u.uid = ur.uid
                                      \t\t\t\t\t\tINNER JOIN [Role] r ON r.rid = ur.rid
-                                     \t\t\t\t\t\tINNER JOIN [RoleFeature] rf ON rf.rid = r.rid
+                                     \t\t\t\t\t\tINNER JOIN [RolePermission] rf ON rf.rid = r.rid
                                      \t\t\t\t\t\tINNER JOIN [Feature] f ON f.fid = rf.fid
                                      \t\t\t\t\t\tWHERE u.uid = ?""";
 
@@ -43,8 +43,8 @@ public class RoleDBContext extends DBContext<BaseObject> {
                 int rid = rs.getInt("rid");
                 if (rid != current.getId()) {
                     current = new Role();
-                    current.setId(id);
-                    current.setRoleName(rs.getString("rname"));
+                    current.setId(rid);
+                    current.setRoleName(rs.getString("rolename"));
                     roles.add(current);
                 }
                 Feature f = new Feature();

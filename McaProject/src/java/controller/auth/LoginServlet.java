@@ -42,11 +42,12 @@ public class LoginServlet extends HttpServlet {
 
         if (user != null) {
             HttpSession session = request.getSession();
-            session.setAttribute("user", user);
+            session.setAttribute("auth", user);
             response.sendRedirect("home");
         } else {
             request.setAttribute("error", "Incorrect username or password!");
             request.getRequestDispatcher("view/auth/login.jsp").forward(request, response);
+
         }
     }
 }

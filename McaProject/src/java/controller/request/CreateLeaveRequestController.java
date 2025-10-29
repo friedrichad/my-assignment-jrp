@@ -18,32 +18,23 @@ import java.text.SimpleDateFormat;
 public class CreateLeaveRequestController extends BaseAuthorizationController {
 
     @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException {
+        // Hiển thị trang tạo request
+        req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        try {
-            int eid = user.getId(); // Lấy từ session
-            int typeid = Integer.parseInt(req.getParameter("typeid"));
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            java.util.Date start = sdf.parse(req.getParameter("start_date"));
-            java.util.Date end = sdf.parse(req.getParameter("end_date"));
-            
-            double numDays = (end.getTime() - start.getTime()) / (1000.0 * 60 * 60 * 24) + 1;
+        // Xử lý dữ liệu form tạo request ở đây
+        String title = req.getParameter("title");
+        String description = req.getParameter("description");
 
-            LeaveRequest lr = new LeaveRequest();
-            lr.setEid(eid);
-            lr.setTypeid(typeid);
-            lr.setStartDate(start);
-            lr.setEndDate(end);
-            lr.setNumDays(numDays);
+        // TODO: lưu vào DB
+        System.out.println("User " + user.getAccount()+ " created request: " + title);
 
-            LeaveRequestDBContext db = new LeaveRequestDBContext();
-            db.insert(lr);
-
-            req.setAttribute("message", "Đơn xin nghỉ đã được tạo thành công!");
-        } catch (Exception e) {
-            req.setAttribute("message", "Lỗi khi tạo đơn nghỉ: " + e.getMessage());
-        }
-        req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+        resp.sendRedirect(req.getContextPath() + "/request/list");
     }
 
     @Override

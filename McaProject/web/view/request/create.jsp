@@ -1,147 +1,120 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <title>Tạo đơn xin nghỉ phép</title>
+<head>
+    <meta charset="UTF-8">
+    <title>Tạo đơn xin nghỉ phép</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
 
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            max-width: none !important;
+        }
 
-        <style>
-            body {
-                background-color: #f0f2f5; /* giữ nền xám nhẹ */
-                display: flex;
-                justify-content: center;  /* căn giữa theo chiều ngang */
-                align-items: center;      /* căn giữa theo chiều dọc */
-                min-height: 100vh;        /* chiếm đủ chiều cao màn hình */
-                margin: 0;                /* bỏ margin mặc định */
-                max-width: none !important; /* ghi đè sakura.css */
-            }
+        .form-container {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            width: 700px;
+            padding: 2rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
 
-            .form-container {
-                background-color: #fff;
-                border-radius: 16px;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                width: 900px;
-                padding: 2rem 2.5rem;
-                display: flex;
-                flex-direction: column;
-                gap: 1.5rem;
-            }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
 
-            h1 {
-                text-align: center;
-                color: #333;
-                margin-bottom: 0.5rem;
-            }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
 
-            form {
-                display: flex;
-                gap: 2rem;
-                justify-content: space-between;
-            }
+        label {
+            font-weight: 500;
+        }
 
-            .form-column {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-            }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+        }
 
-            label {
-                font-weight: 500;
-            }
+        textarea {
+            min-height: 80px;
+        }
 
-            input, select, textarea {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                font-size: 14px;
-                resize: vertical;
-            }
+        .btn-submit {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-            textarea {
-                min-height: 80px;
-            }
+        .btn-submit:hover {
+            background-color: #357ab8;
+        }
 
-            .btn-submit {
-                background-color: #4a90e2;
-                color: white;
-                border: none;
-                padding: 10px;
-                border-radius: 8px;
-                font-size: 15px;
-                cursor: pointer;
-                transition: 0.2s;
-            }
+        .back-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
 
-            .btn-submit:hover {
-                background-color: #357ab8;
-            }
+        .back-link a {
+            text-decoration: none;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
 
-            .back-link {
-                text-align: center;
-                margin-top: 1rem;
-            }
+<div class="form-container">
+    <h1>Tạo đơn xin nghỉ phép</h1>
 
-            .back-link a {
-                text-decoration: none;
-                color: #4a90e2;
-                font-weight: 500;
-            }
-        </style>
-    </head>
-    <body>
+    <form action="${pageContext.request.contextPath}/request/create" method="post">
+        <label for="leaveType">Loại nghỉ phép:</label>
+        <select id="leaveType" name="typeId" required>
+            <option value="" disabled selected>Chọn loại nghỉ</option>
+            <option value="1">Nghỉ phép năm</option>
+            <option value="2">Nghỉ ốm</option>
+            <option value="3">Nghỉ thai sản</option>
+            <option value="4">Nghỉ không lương</option>
+        </select>
 
-        <div class="form-container">
-            <h1>Tạo đơn xin nghỉ phép</h1>
+        <label for="startDate">Từ ngày:</label>
+        <input type="date" id="startDate" name="startDate" required>
 
-            <form action="${pageContext.request.contextPath}/leave/create" method="post">
-                <!-- Cột bên trái -->
-                <div class="form-column">
-                    <label for="employeeName">Họ và tên:</label>
-                    <input type="text" id="employeeName" name="employeeName" placeholder="Nguyễn Văn A" required>
+        <label for="endDate">Đến ngày:</label>
+        <input type="date" id="endDate" name="endDate" required>
 
-                    <label for="department">Phòng ban:</label>
-                    <select id="department" name="department" required>
-                        <option value="" selected hidden>Chọn phòng ban</option>
-                        <option value="">-- Không chọn --</option>
-                        <option value="IT">IT</option>
-                        <option value="QA">QA</option>
-                        <option value="SALE">SALE</option>
-                    </select>
+        <label for="reason">Lý do nghỉ:</label>
+        <textarea id="reason" name="reason" placeholder="Nhập lý do nghỉ..." required></textarea>
 
+        <button type="submit" class="btn-submit">Gửi Đơn</button>
+    </form>
 
-                    <label for="leaveType">Loại nghỉ phép:</label>
-                    <select id="leaveType" name="typeId" required>
-                        <option value="" disabled selected>Chọn loại nghỉ</option>
-                        <option value="1">Nghỉ phép năm (Annual Leave)</option>
-                        <option value="2">Nghỉ ốm (Sick Leave)</option>
-                        <option value="3">Nghỉ thai sản (Maternity/Paternity Leave)</option>
-                        <option value="4">Nghỉ không lương (Unpaid Leave)</option>
-                    </select>
-                </div>
+    <div class="back-link">
+        <a href="${pageContext.request.contextPath}/request/list">Quay lại danh sách</a>
+    </div>
+</div>
 
-                <!-- Cột bên phải -->
-                <div class="form-column">
-                    <label for="startDate">Từ ngày:</label>
-                    <input type="date" id="startDate" name="startDate" required>
-
-                    <label for="endDate">Đến ngày:</label>
-                    <input type="date" id="endDate" name="endDate" required>
-
-                    <label for="reason">Lý do nghỉ:</label>
-                    <textarea id="reason" name="reason" placeholder="Nhập lý do nghỉ..." required></textarea>
-
-                    <button type="submit" class="btn-submit">Gửi Đơn</button>
-                </div>
-            </form>
-
-            <div class="back-link">
-                <a href="${pageContext.request.contextPath}/leave/list">Quay lại danh sách</a>
-            </div>
-        </div>
-
-    </body>
+</body>
 </html>

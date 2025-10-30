@@ -5,8 +5,18 @@
         <title>Login</title>
         <!-- Link Sakura CSS -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
+        <script src="${pageContext.request.contextPath}/assets/js/toggle-password.js"></script>
+
         <style>
-          
+            body {
+                background-color: #f0f2f5; /* giữ nền xám nhẹ */
+                display: flex;
+                justify-content: center;  /* căn giữa theo chiều ngang */
+                align-items: center;      /* căn giữa theo chiều dọc */
+                min-height: 100vh;        /* chiếm đủ chiều cao màn hình */
+                margin: 0;                /* bỏ margin mặc định */
+                max-width: none !important; /* ghi đè sakura.css */
+            }
 
             .container {
                 display: flex;
@@ -81,11 +91,15 @@
                     <form action="${pageContext.request.contextPath}/login" method="post">
                         <label>Username:</label>
                         <input type="text" name="account" required>
-
-                        <label>Password:</label>
-                        <input type="password" name="password" required>
+                        <div style="position: relative;">
+                            <input type="password" name="password" id="password" required>
+                            <span onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+                                👁️
+                            </span>
+                        </div>
 
                         <button type="submit">Login</button>
+
 
                         <%
                             String err = (String) request.getAttribute("error");

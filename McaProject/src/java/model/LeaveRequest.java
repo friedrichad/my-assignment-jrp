@@ -7,6 +7,7 @@ package model;
 import java.util.Date;
 
 public class LeaveRequest {
+
     private int reqid;
     private int eid;
     private int typeid;
@@ -16,32 +17,87 @@ public class LeaveRequest {
     private String status;
     private Integer approverid;
     private Date requestedAt;
+    private String reason;
 
     // getters and setters
-    public int getReqid() { return reqid; }
-    public void setReqid(int reqid) { this.reqid = reqid; }
+    public int getReqid() {
+        return reqid;
+    }
 
-    public int getEid() { return eid; }
-    public void setEid(int eid) { this.eid = eid; }
+    public void setReqid(int reqid) {
+        this.reqid = reqid;
+    }
 
-    public int getTypeid() { return typeid; }
-    public void setTypeid(int typeid) { this.typeid = typeid; }
+    public int getEid() {
+        return eid;
+    }
 
-    public Date getStartDate() { return startDate; }
-    public void setStartDate(Date startDate) { this.startDate = startDate; }
+    public void setEid(int eid) {
+        this.eid = eid;
+    }
 
-    public Date getEndDate() { return endDate; }
-    public void setEndDate(Date endDate) { this.endDate = endDate; }
+    public int getTypeid() {
+        return typeid;
+    }
 
-    public double getNumDays() { return numDays; }
-    public void setNumDays(double numDays) { this.numDays = numDays; }
+    public void setTypeid(int typeid) {
+        this.typeid = typeid;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public Date getStartDate() {
+        return startDate;
+    }
 
-    public Integer getApproverid() { return approverid; }
-    public void setApproverid(Integer approverid) { this.approverid = approverid; }
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
 
-    public Date getRequestedAt() { return requestedAt; }
-    public void setRequestedAt(Date requestedAt) { this.requestedAt = requestedAt; }
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public double getNumDays() {
+        return numDays;
+    }
+
+    public void setNumDays(double numDays) {
+        this.numDays = numDays;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Integer getApproverid() {
+        return approverid;
+    }
+
+    public void setApproverid(Integer approverid) {
+        this.approverid = approverid;
+    }
+
+    public Date getRequestedAt() {
+        return requestedAt;
+    }
+
+    public void setRequestedAt(Date requestedAt) {
+        this.requestedAt = requestedAt;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
 }

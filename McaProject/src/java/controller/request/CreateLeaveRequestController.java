@@ -25,17 +25,37 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
-            throws ServletException, IOException {
-        // Xử lý dữ liệu form tạo request ở đây
-        String title = req.getParameter("title");
-        String description = req.getParameter("description");
+protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+        throws ServletException, IOException {
+    try {
+        int typeId = Integer.parseInt(req.getParameter("typeId"));
+        java.sql.Date startDate = java.sql.Date.valueOf(req.getParameter("startDate"));
+        java.sql.Date endDate = java.sql.Date.valueOf(req.getParameter("endDate"));
+        String reason = req.getParameter("reason");
 
-        // TODO: lưu vào DB
-        System.out.println("User " + user.getAccount()+ " created request: " + title);
+        // Tính số ngày nghỉ
+        long diff = endDate.getTime() - startDate.getTime();
+        double numDays = (diff / (1000 * 60 * 60 * 24)) + 1;
+
+        // Tạo đối tượng LeaveRequest
+        LeaveRequest lr = new LeaveRequest();
+        lr.setEid(user.getEmployee().getId()); // lấy id nhân viên từ user
+        lr.setTypeid(typeId);
+        lr.setStartDate(startDate);
+        lr.setEndDate(endDate);
+        lr.setNumDays(numDays);
+        lr.setReason(reason);
+
+        // Gọi DBContext để insert
+        LeaveRequestDBContext db = new LeaveRequestDBContext();
+        db.insert(lr);
 
         resp.sendRedirect(req.getContextPath() + "/request/list");
+    } catch (Exception e) {
+        e.printStackTrace();
+        resp.getWriter().println("Lỗi khi gửi đơn: " + e.getMessage());
     }
+}
 
     @Override
     protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {

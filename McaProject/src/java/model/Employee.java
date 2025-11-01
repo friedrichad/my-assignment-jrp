@@ -9,19 +9,19 @@ import java.sql.Date;
  * @author Hiro
  */
 public class Employee extends BaseObject {
-    private String userRealName;
+    private String employeeName;
     private boolean gender;
     private java.sql.Date dob;
     private String email;
     private Division division;
     private Employee supervisor;
 
-    public String getUserRealName() {
-        return userRealName;
+    public String getEmployeeName() {
+        return employeeName;
     }
 
-    public void setUserRealName(String userRealName) {
-        this.userRealName = userRealName;
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
     }
 
     public boolean isGender() {

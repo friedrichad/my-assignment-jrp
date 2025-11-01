@@ -18,6 +18,7 @@ public class LeaveRequest {
     private Integer approverid;
     private Date requestedAt;
     private String reason;
+    private Employee employee;
 
     // getters and setters
     public int getReqid() {
@@ -98,6 +99,15 @@ public class LeaveRequest {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 
 }

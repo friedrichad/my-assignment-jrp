@@ -17,11 +17,13 @@
         body {
             background: #f0f2f5;
             padding: 40px;
+            font-family: Arial, sans-serif;
         }
 
         h1 {
             text-align: center;
             margin-bottom: 30px;
+            color: #333;
         }
 
         table {
@@ -66,6 +68,22 @@
             margin-top: 20px;
             text-align: center;
         }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .status.Pending {
+            color: #ff9800;
+        }
+
+        .status.Approved {
+            color: #4caf50;
+        }
+
+        .status.Rejected {
+            color: #f44336;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +94,7 @@
     <thead>
         <tr>
             <th>Mã đơn</th>
+            <th>Tên nhân viên</th>
             <th>Loại nghỉ</th>
             <th>Từ ngày</th>
             <th>Đến ngày</th>
@@ -92,7 +111,8 @@
                 for (LeaveRequest lr : requests) {
         %>
         <tr>
-            <td><%= lr.getId() %></td>
+            <td><%= lr.getReqid() %></td>
+            <td><%= lr.getEmployee() != null ? lr.getEmployee().getEmployeeName() : "N/A" %></td>
             <td><%= lr.getTypeid() %></td>
             <td><%= lr.getStartDate() %></td>
             <td><%= lr.getEndDate() %></td>
@@ -101,7 +121,7 @@
             <td><%= lr.getStatus() != null ? lr.getStatus() : "Pending" %></td>
             <td>
                 <% if (lr.getStatus() == null || "Pending".equalsIgnoreCase(lr.getStatus())) { %>
-                    <a href="${pageContext.request.contextPath}/request/edit?id=<%= lr.getId() %>" class="btn-edit">Sửa</a>
+                    <a href="${pageContext.request.contextPath}/request/edit?id=<%= lr.getReqid() %>" class="btn-edit">Sửa</a>
                 <% } else { %>
                     <button class="btn-edit" disabled>Đã duyệt</button>
                 <% } %>
@@ -111,7 +131,7 @@
                 }
             } else { 
         %>
-        <tr><td colspan="8" style="text-align:center;">Chưa có đơn nghỉ phép nào.</td></tr>
+        <tr><td colspan="9" style="text-align:center;">Chưa có đơn nghỉ phép nào.</td></tr>
         <% } %>
     </tbody>
 </table>
@@ -119,6 +139,7 @@
 <div class="back">
     <a href="${pageContext.request.contextPath}/request/create">➕ Tạo đơn mới</a>
 </div>
+
 
 </body>
 </html>

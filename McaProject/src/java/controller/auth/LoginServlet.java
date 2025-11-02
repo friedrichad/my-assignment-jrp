@@ -23,7 +23,7 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         // Nếu đã đăng nhập -> chuyển về trang chủ
         HttpSession session = request.getSession();
-        if (session.getAttribute("user") != null) {
+        if (session.getAttribute("auth") != null) {
             response.sendRedirect("home");
         } else {
             request.getRequestDispatcher("view/auth/login.jsp").forward(request, response);
@@ -38,7 +38,7 @@ public class LoginServlet extends HttpServlet {
 
         UserDBContext userDB = new UserDBContext();
         User user = userDB.getUserByLogin(account, password);
-        userDB.close(); // Đóng kết nối DB
+        userDB.closeConnection(); // Đóng kết nối DB
 
         if (user != null) {
             HttpSession session = request.getSession();

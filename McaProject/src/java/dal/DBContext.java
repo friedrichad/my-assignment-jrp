@@ -29,7 +29,7 @@ public abstract class DBContext<T extends BaseObject>{
         return connection;
     }
 
-    public void close() {
+    public void closeConnection() {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();

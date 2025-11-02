@@ -25,37 +25,43 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
     }
 
     @Override
-protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
-        throws ServletException, IOException {
-    try {
-        int typeId = Integer.parseInt(req.getParameter("typeId"));
-        java.sql.Date startDate = java.sql.Date.valueOf(req.getParameter("startDate"));
-        java.sql.Date endDate = java.sql.Date.valueOf(req.getParameter("endDate"));
-        String reason = req.getParameter("reason");
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+            throws ServletException, IOException {
+        try {
+            int typeId = Integer.parseInt(req.getParameter("typeId"));
+            java.sql.Date startDate = java.sql.Date.valueOf(req.getParameter("startDate"));
+            java.sql.Date endDate = java.sql.Date.valueOf(req.getParameter("endDate"));
+            String reason = req.getParameter("reason");
 
-        // Tính số ngày nghỉ
-        long diff = endDate.getTime() - startDate.getTime();
-        double numDays = (diff / (1000 * 60 * 60 * 24)) + 1;
+            // Tính số ngày nghỉ
+            long diff = endDate.getTime() - startDate.getTime();
+            double numDays = (diff / (1000 * 60 * 60 * 24)) + 1;
 
-        // Tạo đối tượng LeaveRequest
-        LeaveRequest lr = new LeaveRequest();
-        lr.setEid(user.getEmployee().getId()); // lấy id nhân viên từ user
-        lr.setTypeid(typeId);
-        lr.setStartDate(startDate);
-        lr.setEndDate(endDate);
-        lr.setNumDays(numDays);
-        lr.setReason(reason);
+            if (numDays > 99.99) {
+                req.setAttribute("error", "Leave duration exceeds the maximum allowed (99 days).");
+                req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+                return;
+            }
 
-        // Gọi DBContext để insert
-        LeaveRequestDBContext db = new LeaveRequestDBContext();
-        db.insert(lr);
+            // Tạo đối tượng LeaveRequest
+            LeaveRequest lr = new LeaveRequest();
+            lr.setEid(user.getEmployee().getId()); // lấy id nhân viên từ user
+            lr.setTypeid(typeId);
+            lr.setStartDate(startDate);
+            lr.setEndDate(endDate);
+            lr.setNumDays(numDays);
+            lr.setReason(reason);
 
-        resp.sendRedirect(req.getContextPath() + "/request/list");
-    } catch (Exception e) {
-        e.printStackTrace();
-        resp.getWriter().println("Lỗi khi gửi đơn: " + e.getMessage());
+            // Gọi DBContext để insert
+            LeaveRequestDBContext db = new LeaveRequestDBContext();
+            db.insert(lr);
+
+            resp.sendRedirect(req.getContextPath() + "/request/list");
+        } catch (Exception e) {
+            e.printStackTrace();
+            resp.getWriter().println("Lỗi khi gửi đơn: " + e.getMessage());
+        }
     }
-}
 
     @Override
     protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {

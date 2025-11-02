@@ -56,7 +56,7 @@ public class RoleDBContext extends DBContext<BaseObject> {
         } catch (SQLException ex) {
             Logger.getLogger(RoleDBContext.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-            close();
+            closeConnection();
         }
         return roles;
     }

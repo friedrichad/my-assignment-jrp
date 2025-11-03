@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 public abstract class DBContext<T extends BaseObject>{
     protected Connection connection;
+    
 
     public DBContext() {
         try {

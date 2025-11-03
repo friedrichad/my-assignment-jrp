@@ -12,7 +12,8 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import model.LeaveType;
 
 @WebServlet("/request/create")
 public class CreateLeaveRequestController extends BaseAuthorizationController {
@@ -20,7 +21,7 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        // Hiển thị trang tạo request
+        loadLeaveTypes(req);
         req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
     }
 
@@ -38,6 +39,7 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             double numDays = (diff / (1000 * 60 * 60 * 24)) + 1;
 
             if (numDays > 99.99) {
+                loadLeaveTypes(req);
                 req.setAttribute("error", "Leave duration exceeds the maximum allowed (99 days).");
                 req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
                 return;
@@ -61,6 +63,12 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             e.printStackTrace();
             resp.getWriter().println("Lỗi khi gửi đơn: " + e.getMessage());
         }
+    }
+
+    private void loadLeaveTypes(HttpServletRequest req) {
+        LeaveRequestDBContext ltDao = new LeaveRequestDBContext();
+        ArrayList<LeaveType> leaveTypes = ltDao.listLeaveType();
+        req.setAttribute("leaveTypes", leaveTypes);
     }
 
     @Override

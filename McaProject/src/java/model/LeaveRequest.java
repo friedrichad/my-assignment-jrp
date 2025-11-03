@@ -11,6 +11,7 @@ public class LeaveRequest {
     private int reqid;
     private int eid;
     private int typeid;
+    private String leaveTypeName;
     private Date startDate;
     private Date endDate;
     private double numDays;
@@ -109,5 +110,14 @@ public class LeaveRequest {
     public void setEmployee(Employee employee) {
         this.employee = employee;
     }
+
+    public String getLeaveTypeName() {
+        return leaveTypeName;
+    }
+
+    public void setLeaveTypeName(String leaveTypeName) {
+        this.leaveTypeName = leaveTypeName;
+    }
+    
 
 }

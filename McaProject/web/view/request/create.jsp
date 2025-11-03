@@ -1,5 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="model.LeaveType" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -95,10 +97,16 @@
                 <label for="leaveType">Loại nghỉ phép:</label>
                 <select id="leaveType" name="typeId" required>
                     <option value="" disabled selected>Chọn loại nghỉ</option>
-                    <option value="1">Nghỉ phép năm</option>
-                    <option value="2">Nghỉ ốm</option>
-                    <option value="3">Nghỉ thai sản</option>
-                    <option value="4">Nghỉ không lương</option>
+                    <% 
+                        ArrayList<LeaveType> leaveTypes = (ArrayList<LeaveType>) request.getAttribute("leaveTypes");
+                        if (leaveTypes != null) {
+                            for (LeaveType lt : leaveTypes) {
+                    %>
+                    <option value="<%= lt.getTypeid() %>"><%= lt.getTypename() %></option>
+                    <% 
+                            }
+                        }
+                    %>
                 </select>
 
                 <label for="startDate">Từ ngày:</label>

@@ -180,9 +180,9 @@
                             for (LeaveRequest lr : requests) {
                     %>
                     <tr>
-                        <td><%= lr.getReqid() %></td>
+                        <td><%= lr.getId() %></td>
                         <td><%= lr.getEmployee() != null ? lr.getEmployee().getEmployeeName() : "N/A" %></td>
-                        <td><%= lr.getTypeid() %></td>
+                        <td><%= lr.getId() %></td>
                         <td><%= lr.getStartDate() %></td>
                         <td><%= lr.getEndDate() %></td>
                         <td><%= lr.getNumDays() %></td>
@@ -190,7 +190,7 @@
                         <td class="status <%= lr.getStatus() %>"><%= lr.getStatus() != null ? lr.getStatus() : "Pending" %></td>
                         <td>
                             <% if (lr.getStatus() == null || "Pending".equalsIgnoreCase(lr.getStatus())) { %>
-                            <a href="${pageContext.request.contextPath}/request/edit?id=<%= lr.getReqid() %>" class="btn-edit">Sửa</a>
+                            <a href="${pageContext.request.contextPath}/request/edit?id=<%= lr.getId() %>" class="btn-edit">Sửa</a>
                             <% } else { %>
                             <button class="btn-edit" disabled>Đã duyệt</button>
                             <% } %>

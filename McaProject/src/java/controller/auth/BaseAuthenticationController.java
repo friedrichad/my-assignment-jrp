@@ -16,12 +16,12 @@ import model.self.User;
  * @author hiro
  */
 public abstract class BaseAuthenticationController extends HttpServlet {
-   private boolean isAuthenticated(HttpServletRequest req) {
+
+    private boolean isAuthenticated(HttpServletRequest req) {
         User u = (User) req.getSession().getAttribute("auth");
         return u != null;
     }
 
-    // abstract methods — bắt buộc lớp con phải override
     protected abstract void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException;
 
@@ -35,11 +35,8 @@ public abstract class BaseAuthenticationController extends HttpServlet {
             User u = (User) req.getSession().getAttribute("auth");
             doGet(req, resp, u);
         } else {
-            // ✅ sửa: forward tuyệt đối (tính từ context root)
-            req.setAttribute("error", "You are not logged yet!");
+            req.setAttribute("error", "You are not logged in!");
             req.getRequestDispatcher("/view/auth/login.jsp").forward(req, resp);
-            // hoặc có thể dùng redirect:
-            // resp.sendRedirect(req.getContextPath() + "/login");
         }
     }
 

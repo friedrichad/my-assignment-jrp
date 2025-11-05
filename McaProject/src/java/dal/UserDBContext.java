@@ -18,16 +18,13 @@ public class UserDBContext extends DBContext<User> {
 
         try {
             String sql = """
-    SELECT u.uid, u.disname, u.account, u.password, u.is_active,
-           r.rid, r.rolename,
-           e.eid, e.ename
-    FROM [User] u
-    LEFT JOIN Matching m ON u.uid = m.uid
-    LEFT JOIN Employee e ON m.eid = e.eid
-    LEFT JOIN UserRole ur ON u.uid = ur.uid
-    LEFT JOIN Role r ON ur.rid = r.rid
-    WHERE u.account = ? AND u.password = ? AND u.is_active = 1
-""";
+            SELECT u.uid, u.disname, u.account, u.password, u.is_active,
+                   e.eid, e.ename
+            FROM [User] u
+            LEFT JOIN Matching m ON u.uid = m.uid
+            LEFT JOIN Employee e ON m.eid = e.eid
+            WHERE u.account = ? AND u.password = ? AND u.is_active = 1
+        """;
 
             stm = connection.prepareStatement(sql);
             stm.setString(1, account);
@@ -35,42 +32,25 @@ public class UserDBContext extends DBContext<User> {
             rs = stm.executeQuery();
 
             User u = null;
-            while (rs.next()) {
-                if (u == null) {
-                    u = new User();
-                    u.setId(rs.getInt("uid"));
-                    u.setDisname(rs.getString("disname"));
-                    u.setAccount(rs.getString("account"));
-                    u.setPassword(rs.getString("password"));
-                    u.setIsActive(rs.getBoolean("is_active"));
-                    u.setRoles(new ArrayList<>());
+            if (rs.next()) {
+                u = new User();
+                u.setId(rs.getInt("uid"));
+                u.setDisname(rs.getString("disname"));
+                u.setAccount(rs.getString("account"));
+                u.setPassword(rs.getString("password"));
+                u.setIsActive(rs.getBoolean("is_active"));
+                u.setRoles(null); // ⚠️ để null, để controller tự fetch sau
 
-                    // ✅ Gán Employee nếu có
-                    int eid = rs.getInt("eid");
-                    if (!rs.wasNull()) {
-                        Employee e = new Employee();
-                        e.setId(eid);
-                        e.setEmployeeName(rs.getString("ename"));
-                        u.setEmployee(e);
-                    } else {
-                        u.setEmployee(null);
-                    }
+                // ✅ Gán Employee nếu có
+                int eid = rs.getInt("eid");
+                if (!rs.wasNull()) {
+                    Employee e = new Employee();
+                    e.setId(eid);
+                    e.setEmployeeName(rs.getString("ename"));
+                    u.setEmployee(e);
+                } else {
+                    u.setEmployee(null);
                 }
-
-                // ✅ Gán Role nếu có
-                int rid = rs.getInt("rid");
-                String rolename = rs.getString("rolename");
-                if (rolename != null) {
-                    Role r = new Role();
-                    r.setId(rid);
-                    r.setRoleName(rolename);
-                    u.getRoles().add(r);
-                }
-            }
-
-            // Debug: kiểm tra xem có employee không
-            if (u != null && u.getEmployee() == null) {
-                System.out.println("⚠️ User " + u.getAccount() + " không có Employee gắn kèm!");
             }
 
             return u;
@@ -78,9 +58,17 @@ public class UserDBContext extends DBContext<User> {
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-            closeConnection();
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (stm != null) {
+                    stm.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
-
         return null;
     }
 

@@ -18,72 +18,88 @@ import model.self.Role;
  *
  * @author Hiro
  */
-public class RoleDBContext extends DBContext<BaseObject> {
+public class RoleDBContext extends DBContext<Role> {
 
     public ArrayList<Role> getByUserId(int id) {
-
         ArrayList<Role> roles = new ArrayList<>();
+        System.out.println(">>> [DEBUG] Fetching roles for userId = " + id);
 
         try {
             String sql = """
-                                     SELECT r.rid,r.rolename,f.fid,f.url
-                                     FROM [User] u INNER JOIN [UserRole] ur ON u.uid = ur.uid
-                                     \t\t\t\t\t\tINNER JOIN [Role] r ON r.rid = ur.rid
-                                     \t\t\t\t\t\tINNER JOIN [RolePermission] rf ON rf.rid = r.rid
-                                     \t\t\t\t\t\tINNER JOIN [Feature] f ON f.fid = rf.fid
-                                     \t\t\t\t\t\tWHERE u.uid = ?""";
+            SELECT r.rid, r.rolename, f.fid, f.url
+            FROM [User] u 
+            INNER JOIN [UserRole] ur ON u.uid = ur.uid
+            INNER JOIN [Role] r ON r.rid = ur.rid
+            INNER JOIN [RolePermission] rf ON rf.rid = r.rid
+            INNER JOIN [Feature] f ON f.fid = rf.fid
+            WHERE u.uid = ?
+        """;
 
             PreparedStatement stm = connection.prepareStatement(sql);
             stm.setInt(1, id);
             ResultSet rs = stm.executeQuery();
 
-            Role current = new Role();
-            current.setId(-1);
             while (rs.next()) {
                 int rid = rs.getInt("rid");
-                if (rid != current.getId()) {
+                String rolename = rs.getString("rolename");
+                int fid = rs.getInt("fid");
+                String furl = rs.getString("url"); // kiểm tra tên cột trong DB nhé
+
+                Role current = null;
+                for (Role r : roles) {
+                    if (r.getId() == rid) {
+                        current = r;
+                        break;
+                    }
+                }
+
+                if (current == null) {
                     current = new Role();
                     current.setId(rid);
-                    current.setRoleName(rs.getString("rolename"));
+                    current.setRoleName(rolename);
+                    current.setFeatures(new ArrayList<>());
                     roles.add(current);
+                    System.out.println(">>> [DEBUG] Found new role: " + rolename);
                 }
+
                 Feature f = new Feature();
-                f.setId(rs.getInt("fid"));
-                f.setfUrl(rs.getString("url"));
+                f.setId(fid);
+                f.setfUrl(furl);
                 current.getFeatures().add(f);
+                System.out.println("    -> [DEBUG] Added feature: " + furl);
             }
+
+            System.out.println(">>> [DEBUG] Total roles loaded: " + roles.size());
 
         } catch (SQLException ex) {
             Logger.getLogger(RoleDBContext.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            closeConnection();
         }
+
         return roles;
     }
 
     @Override
-    public ArrayList<BaseObject> list() {
+    public void insert(Role model) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public BaseObject get(int id) {
+    public void update(Role model) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void insert(BaseObject model) {
+    public void delete(Role model) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void update(BaseObject model) {
+    public ArrayList<Role> list() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void delete(BaseObject model) {
+    public Role get(int id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-
 }

@@ -12,7 +12,7 @@ import model.LeaveRequest;
 import model.Employee;
 import model.LeaveType;
 
-public class LeaveRequestDBContext extends DBContext<BaseObject> {
+public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
 
     public void insert(LeaveRequest lr) {
         try {
@@ -38,12 +38,12 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
             // Lấy ID của bản ghi vừa insert
             ResultSet rs = stm.getGeneratedKeys();
             if (rs.next()) {
-                lr.setReqid(rs.getInt(1));
+                lr.setId(rs.getInt(1));
             }
 
             // Commit transaction
             connection.commit();
-            System.out.println("✅ Insert thành công đơn nghỉ phép (reqid=" + lr.getReqid() + ", eid=" + lr.getEid() + ")");
+            System.out.println("✅ Insert thành công đơn nghỉ phép (reqid=" + lr.getId() + ", eid=" + lr.getEid() + ")");
         } catch (SQLException e) {
             try {
                 // Nếu lỗi thì rollback
@@ -81,7 +81,7 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
             try (ResultSet rs = stm.executeQuery()) { //  rồi mới query
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest();
-                    lr.setReqid(rs.getInt("reqid"));
+                    lr.setId(rs.getInt("reqid"));
                     lr.setEid(rs.getInt("eid"));
                     lr.setTypeid(rs.getInt("typeid"));
                     lr.setStartDate(rs.getDate("start_date"));
@@ -102,9 +102,6 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-
-        } finally {
-            closeConnection();
         }
         return list;
 
@@ -127,7 +124,7 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
             try (ResultSet rs = stm.executeQuery()) {
                 if (rs.next()) {
                     LeaveRequest lr = new LeaveRequest();
-                    lr.setReqid(rs.getInt("reqid"));
+                    lr.setId(rs.getInt("reqid"));
                     lr.setEid(rs.getInt("eid"));
                     lr.setTypeid(rs.getInt("typeid"));
                     lr.setStartDate(rs.getDate("start_date"));
@@ -165,7 +162,7 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
             stm.setDate(1, new java.sql.Date(lr.getStartDate().getTime()));
             stm.setDate(2, new java.sql.Date(lr.getEndDate().getTime()));
             stm.setString(3, lr.getReason());
-            stm.setInt(4, lr.getReqid());
+            stm.setInt(4, lr.getId());
             stm.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -178,7 +175,7 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
         try (PreparedStatement stm = connection.prepareStatement(sql); ResultSet rs = stm.executeQuery()) {
             while (rs.next()) {
                 LeaveType lt = new LeaveType();
-                lt.setTypeid(rs.getInt("typeid"));
+                lt.setId(rs.getInt("typeid"));
                 lt.setTypename(rs.getString("typename"));
                 list.add(lt);
             }
@@ -188,28 +185,120 @@ public class LeaveRequestDBContext extends DBContext<BaseObject> {
         return list;
     }
 
+    public ArrayList<Employee> getAllSubordinates(int supervisorId) {
+        ArrayList<Employee> list = new ArrayList<>();
+        String sql = """
+        WITH RecursiveCTE AS (
+            SELECT e.eid, e.ename, e.supervisorid
+            FROM Employee e
+            WHERE e.supervisorid = ?
+            UNION ALL
+            SELECT e2.eid, e2.ename, e2.supervisorid
+            FROM Employee e2
+            INNER JOIN RecursiveCTE r ON e2.supervisorid = r.eid
+        )
+        SELECT * FROM RecursiveCTE
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, supervisorId);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                Employee e = new Employee();
+                e.setId(rs.getInt("eid"));
+                e.setEmployeeName(rs.getString("ename"));
+                list.add(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+// Lấy danh sách đơn nghỉ của toàn bộ cấp dưới
+    public ArrayList<LeaveRequest> getRequestsOfSubordinates(int supervisorId) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        String sql = """
+        WITH RecursiveCTE AS (
+            SELECT e.eid, e.ename, e.supervisorid
+            FROM Employee e
+            WHERE e.supervisorid = ?
+            UNION ALL
+            SELECT e2.eid, e2.ename, e2.supervisorid
+            FROM Employee e2
+            INNER JOIN RecursiveCTE r ON e2.supervisorid = r.eid
+        )
+        SELECT lr.*, e.ename AS employee_name, lt.typename AS leave_type
+        FROM LeaveRequest lr
+        INNER JOIN Employee e ON lr.eid = e.eid
+        INNER JOIN LeaveType lt ON lr.typeid = lt.typeid
+        WHERE lr.eid IN (SELECT eid FROM RecursiveCTE)
+        ORDER BY lr.requested_at DESC
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, supervisorId);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                lr.setId(rs.getInt("reqid"));
+                lr.setEid(rs.getInt("eid"));
+                lr.setTypeid(rs.getInt("typeid"));
+                lr.setStartDate(rs.getDate("start_date"));
+                lr.setEndDate(rs.getDate("end_date"));
+                lr.setNumDays(rs.getDouble("num_days"));
+                lr.setReason(rs.getString("reason"));
+                lr.setStatus(rs.getString("status"));
+                lr.setApproverid((Integer) rs.getObject("approverid"));
+                lr.setRequestedAt(rs.getTimestamp("requested_at"));
+                lr.setLeaveTypeName(rs.getString("leave_type"));
+
+                Employee emp = new Employee();
+                emp.setId(rs.getInt("eid"));
+                emp.setEmployeeName(rs.getString("employee_name"));
+                lr.setEmployee(emp);
+
+                list.add(lr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+// Cập nhật trạng thái (duyệt hoặc từ chối)
+    public void reviewLeaveRequest(int reqid, int approverId, String status, String reason) {
+        String sql = """
+        UPDATE LeaveRequest
+        SET status = ?, approverid = ?, reason = ?
+        WHERE reqid = ? AND status = 'Pending'
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setString(1, status);
+            stm.setInt(2, approverId);
+            stm.setString(3, reason);
+            stm.setInt(4, reqid);
+            stm.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
-    public ArrayList<BaseObject> list() {
+    public void update(LeaveRequest model) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public BaseObject get(int id) {
+    public void delete(LeaveRequest model) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void insert(BaseObject model) {
+    public ArrayList<LeaveRequest> list() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void update(BaseObject model) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public void delete(BaseObject model) {
+    public LeaveRequest get(int id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

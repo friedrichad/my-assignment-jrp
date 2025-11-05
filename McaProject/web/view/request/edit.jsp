@@ -20,7 +20,7 @@
 <h1>✏️ Chỉnh sửa đơn nghỉ phép</h1>
 
 <form action="${pageContext.request.contextPath}/request/edit" method="post">
-    <input type="hidden" name="reqid" value="<%= lr.getReqid() %>">
+    <input type="hidden" name="reqid" value="<%= lr.getId() %>">
 
     <label>Từ ngày:</label>
     <input type="date" name="startDate" value="<%= lr.getStartDate() %>" required><br><br>

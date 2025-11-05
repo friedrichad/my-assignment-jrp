@@ -102,7 +102,7 @@
                         if (leaveTypes != null) {
                             for (LeaveType lt : leaveTypes) {
                     %>
-                    <option value="<%= lt.getTypeid() %>"><%= lt.getTypename() %></option>
+                    <option value="<%= lt.getId() %>"><%= lt.getTypename() %></option>
                     <% 
                             }
                         }

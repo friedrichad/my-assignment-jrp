@@ -4,18 +4,8 @@
  */
 package model;
 
-public class LeaveType {
-    private int typeid;
+public class LeaveType extends BaseObject{
     private String typename;
-
-    public int getTypeid() {
-        return typeid;
-    }
-
-    public void setTypeid(int typeid) {
-        this.typeid = typeid;
-    }
-
     public String getTypename() {
         return typename;
     }

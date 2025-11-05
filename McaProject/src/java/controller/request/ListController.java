@@ -23,7 +23,7 @@ import controller.auth.BaseAuthorizationController;
 public class ListController extends BaseAuthorizationController {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
 
         LeaveRequestDBContext db = new LeaveRequestDBContext();
@@ -34,18 +34,8 @@ public class ListController extends BaseAuthorizationController {
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
-        doGet(req, resp, user);
-    }
-
-    @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        processGet(req, resp, user);
     }
 }

@@ -4,6 +4,7 @@
  */
 package controller.auth;
 
+import dal.RoleDBContext;
 import dal.UserDBContext;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -41,6 +42,7 @@ public class LoginServlet extends HttpServlet {
         userDB.closeConnection(); // Đóng kết nối DB
 
         if (user != null) {
+
             HttpSession session = request.getSession();
             session.setAttribute("auth", user);
             response.sendRedirect("home");

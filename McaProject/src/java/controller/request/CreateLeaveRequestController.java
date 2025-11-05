@@ -19,14 +19,15 @@ import model.LeaveType;
 public class CreateLeaveRequestController extends BaseAuthorizationController {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
+        // ✅ Nạp danh sách loại nghỉ để hiển thị trong form
         loadLeaveTypes(req);
         req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp, User user)
+    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
         try {
             int typeId = Integer.parseInt(req.getParameter("typeId"));
@@ -34,7 +35,7 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             java.sql.Date endDate = java.sql.Date.valueOf(req.getParameter("endDate"));
             String reason = req.getParameter("reason");
 
-            // Tính số ngày nghỉ
+            // ✅ Tính số ngày nghỉ
             long diff = endDate.getTime() - startDate.getTime();
             double numDays = (diff / (1000 * 60 * 60 * 24)) + 1;
 
@@ -45,20 +46,22 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
                 return;
             }
 
-            // Tạo đối tượng LeaveRequest
+            // ✅ Tạo đối tượng LeaveRequest
             LeaveRequest lr = new LeaveRequest();
-            lr.setEid(user.getEmployee().getId()); // lấy id nhân viên từ user
+            lr.setEid(user.getEmployee().getId()); // lấy ID nhân viên từ user đã đăng nhập
             lr.setTypeid(typeId);
             lr.setStartDate(startDate);
             lr.setEndDate(endDate);
             lr.setNumDays(numDays);
             lr.setReason(reason);
 
-            // Gọi DBContext để insert
+            // ✅ Gọi DBContext để insert
             LeaveRequestDBContext db = new LeaveRequestDBContext();
             db.insert(lr);
 
+            // ✅ Quay lại trang danh sách
             resp.sendRedirect(req.getContextPath() + "/request/list");
+
         } catch (Exception e) {
             e.printStackTrace();
             resp.getWriter().println("Lỗi khi gửi đơn: " + e.getMessage());
@@ -69,15 +72,5 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
         LeaveRequestDBContext ltDao = new LeaveRequestDBContext();
         ArrayList<LeaveType> leaveTypes = ltDao.listLeaveType();
         req.setAttribute("leaveTypes", leaveTypes);
-    }
-
-    @Override
-    protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    protected void processGet(HttpServletRequest req, HttpServletResponse resp, User user) throws ServletException, IOException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

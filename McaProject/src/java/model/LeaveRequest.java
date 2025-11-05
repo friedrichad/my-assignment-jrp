@@ -6,9 +6,8 @@ package model;
 
 import java.util.Date;
 
-public class LeaveRequest {
+public class LeaveRequest extends BaseObject {
 
-    private int reqid;
     private int eid;
     private int typeid;
     private String leaveTypeName;
@@ -20,15 +19,6 @@ public class LeaveRequest {
     private Date requestedAt;
     private String reason;
     private Employee employee;
-
-    // getters and setters
-    public int getReqid() {
-        return reqid;
-    }
-
-    public void setReqid(int reqid) {
-        this.reqid = reqid;
-    }
 
     public int getEid() {
         return eid;
@@ -102,7 +92,6 @@ public class LeaveRequest {
         this.reason = reason;
     }
 
-    
     public Employee getEmployee() {
         return employee;
     }
@@ -118,6 +107,5 @@ public class LeaveRequest {
     public void setLeaveTypeName(String leaveTypeName) {
         this.leaveTypeName = leaveTypeName;
     }
-    
 
 }

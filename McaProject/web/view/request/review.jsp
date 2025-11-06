@@ -11,55 +11,97 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Review Leave Requests</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/style.css">
+    <meta charset="UTF-8">
+    <title>Duyệt đơn nghỉ phép</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
+
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-        h2 { color: #333; text-align: center; }
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            max-width: none !important;
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            background: white;
+            background: #fff;
             border-radius: 8px;
             overflow: hidden;
+            margin-top: 20px;
         }
+
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             padding: 10px 12px;
             text-align: center;
+            white-space: nowrap;
         }
-        th { background: #007bff; color: white; }
+
+        th {
+            background: #007bff;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
         tr:nth-child(even) { background: #f9f9f9; }
-        tr:hover { background: #eef3ff; }
+        tr:hover { background: #dbeafe; }
+
         .btn {
             padding: 6px 12px;
             border: none;
             border-radius: 5px;
             color: white;
             cursor: pointer;
+            text-decoration: none;
         }
+
         .approve { background-color: #28a745; }
         .reject { background-color: #dc3545; }
         .btn:hover { opacity: 0.9; }
+
+        .status.Pending {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .status.Approved {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .status.Rejected {
+            color: #f44336;
+            font-weight: bold;
+        }
+
         .note {
             margin-top: 15px;
             font-style: italic;
             color: #555;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-<h2>Review Leave Requests</h2>
+<h2>📋 Duyệt đơn nghỉ phép</h2>
 
 <%
     ArrayList<LeaveRequest> requests = (ArrayList<LeaveRequest>) request.getAttribute("requests");
     if (requests == null || requests.isEmpty()) {
 %>
-    <p style="text-align:center; color:#666;">No leave requests pending review.</p>
+    <p style="text-align:center; color:#666;">Không có đơn nghỉ phép nào cần duyệt.</p>
 <%
     } else {
 %>
@@ -67,20 +109,21 @@
 <table>
     <thead>
     <tr>
-        <th>ID</th>
-        <th>Employee</th>
-        <th>Type</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Days</th>
-        <th>Reason</th>
-        <th>Status</th>
-        <th>Action</th>
+        <th>Mã đơn</th>
+        <th>Nhân viên</th>
+        <th>Loại nghỉ</th>
+        <th>Từ ngày</th>
+        <th>Đến ngày</th>
+        <th>Số ngày</th>
+        <th>Lý do</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
     </tr>
     </thead>
     <tbody>
     <%
         for (LeaveRequest lr : requests) {
+            String status = lr.getStatus() != null ? lr.getStatus() : "Pending";
     %>
     <tr>
         <td><%= lr.getId() %></td>
@@ -90,9 +133,9 @@
         <td><%= lr.getEndDate() %></td>
         <td><%= lr.getNumDays() %></td>
         <td><%= lr.getReason() %></td>
-        <td><%= lr.getStatus() %></td>
+        <td class="status <%= status %>"><%= status %></td>
         <td>
-            <% if ("Pending".equalsIgnoreCase(lr.getStatus())) { %>
+            <% if ("Pending".equalsIgnoreCase(status)) { %>
                 <form action="review" method="post" style="display:inline;">
                     <input type="hidden" name="reqid" value="<%= lr.getId() %>">
                     <input type="hidden" name="action" value="approve">
@@ -104,7 +147,7 @@
                     <button type="submit" class="btn reject">Reject</button>
                 </form>
             <% } else { %>
-                <%= lr.getStatus() %>
+                <button class="btn" style="background:#ccc; cursor:default;"><%= status %></button>
             <% } %>
         </td>
     </tr>
@@ -114,7 +157,7 @@
 
 <% } %>
 
-<p class="note">You can approve or reject pending leave requests from your subordinates here.</p>
+<p class="note">Bạn có thể phê duyệt hoặc từ chối các đơn nghỉ phép của cấp dưới tại đây.</p>
 
 </body>
 </html>

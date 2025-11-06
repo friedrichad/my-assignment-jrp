@@ -182,7 +182,7 @@
                     <tr>
                         <td><%= lr.getId() %></td>
                         <td><%= lr.getEmployee() != null ? lr.getEmployee().getEmployeeName() : "N/A" %></td>
-                        <td><%= lr.getId() %></td>
+                        <td><%= lr.getLeaveTypeName() %></td>
                         <td><%= lr.getStartDate() %></td>
                         <td><%= lr.getEndDate() %></td>
                         <td><%= lr.getNumDays() %></td>

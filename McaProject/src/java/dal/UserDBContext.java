@@ -7,6 +7,7 @@ package dal;
 import java.sql.*;
 import model.self.User;
 import java.util.ArrayList;
+import model.Division;
 import model.self.Role;
 import model.Employee;
 
@@ -71,6 +72,164 @@ public class UserDBContext extends DBContext<User> {
         }
         return null;
     }
+    public ArrayList<Employee> getAllSubordinates(int supervisorId) {
+        ArrayList<Employee> list = new ArrayList<>();
+        String sql = """
+        WITH RecursiveCTE AS (
+            SELECT e.eid, e.ename, e.supervisorid
+            FROM Employee e
+            WHERE e.supervisorid = ?
+            UNION ALL
+            SELECT e2.eid, e2.ename, e2.supervisorid
+            FROM Employee e2
+            INNER JOIN RecursiveCTE r ON e2.supervisorid = r.eid
+        )
+        SELECT * FROM RecursiveCTE
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, supervisorId);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                Employee e = new Employee();
+                e.setId(rs.getInt("eid"));
+                e.setEmployeeName(rs.getString("ename"));
+                list.add(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    public ArrayList<User> getAllUsers() {
+    ArrayList<User> list = new ArrayList<>();
+    String sql = """
+        SELECT u.uid, u.disname, u.account, u.is_active,
+               r.rid, r.rolename,
+               e.eid, e.ename, e.supervisorid
+        FROM [User] u
+        LEFT JOIN UserRole ur ON u.uid = ur.uid
+        LEFT JOIN Role r ON ur.rid = r.rid
+        LEFT JOIN Employee e ON u.uid = e.eid
+        ORDER BY u.uid
+    """;
+
+    try (PreparedStatement stm = connection.prepareStatement(sql);
+         ResultSet rs = stm.executeQuery()) {
+        while (rs.next()) {
+            User u = new User();
+            u.setId(rs.getInt("uid"));
+            u.setDisname(rs.getString("disname"));
+            u.setAccount(rs.getString("account"));
+            u.setIsActive(rs.getBoolean("is_active"));
+
+            // Role
+            int rid = rs.getInt("rid");
+            if (!rs.wasNull()) {
+                Role role = new Role();
+                role.setId(rid);
+                role.setRoleName(rs.getString("rolename"));
+                ArrayList<Role> roles = new ArrayList<>();
+                roles.add(role);
+                u.setRoles(roles);
+            } else {
+                u.setRoles(new ArrayList<>()); // hoặc null tùy bạn
+            }
+
+            // Employee
+            int eid = rs.getInt("eid");
+            if (!rs.wasNull()) {
+                Employee e = new Employee();
+                e.setId(eid);
+                e.setEmployeeName(rs.getString("ename"));
+
+                // Supervisor
+                int supId = rs.getInt("supervisorid");
+                if (!rs.wasNull()) {
+                    Employee supervisor = new Employee();
+                    supervisor.setId(supId);
+                    e.setSupervisor(supervisor);
+                } else {
+                    e.setSupervisor(null);
+                }
+
+                u.setEmployee(e);
+            } else {
+                u.setEmployee(null);
+            }
+
+            list.add(u);
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    return list;
+}
+    public ArrayList<Employee> getTopEmployees() {
+    ArrayList<Employee> list = new ArrayList<>();
+    String sql = "SELECT eid, ename FROM Employee WHERE supervisorid IS NULL";
+
+    try (PreparedStatement stm = connection.prepareStatement(sql);
+         ResultSet rs = stm.executeQuery()) {
+        while (rs.next()) {
+            Employee e = new Employee();
+            e.setId(rs.getInt("eid"));
+            e.setEmployeeName(rs.getString("ename"));
+            list.add(e);
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+    return list;
+}
+    public void assignSupervisor(int empId, Integer supId) {
+    String sql = "UPDATE Employee SET supervisorid = ? WHERE eid = ?";
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        if (supId != null) {
+            stm.setInt(1, supId);
+        } else {
+            stm.setNull(1, java.sql.Types.INTEGER);
+        }
+        stm.setInt(2, empId);
+        stm.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+    public ArrayList<Division> getAllDivisions() {
+    ArrayList<Division> list = new ArrayList<>();
+    String sql = "SELECT divid, divname FROM Division"; // đổi tên cột cho đúng DB
+    try (PreparedStatement stm = connection.prepareStatement(sql);
+         ResultSet rs = stm.executeQuery()) {
+        while (rs.next()) {
+            Division d = new Division();
+            d.setId(rs.getInt("divid"));
+            d.setDivisionName(rs.getString("divname"));
+            list.add(d);
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+    return list;
+}
+
+public void updateDivision(int empId, String divisionName) {
+    String sql = """
+        UPDATE Employee
+        SET divisionid = (SELECT divid FROM Division WHERE divname = ?)
+        WHERE eid = ?
+    """;
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setString(1, divisionName);
+        stm.setInt(2, empId);
+        stm.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+
 
     @Override
     public ArrayList<User> list() {

@@ -24,52 +24,53 @@ import java.util.ArrayList;
 public abstract class BaseAuthorizationController extends BaseAuthenticationController {
 
     private boolean isAuthorized(HttpServletRequest req, User user) {
-        System.out.println("[DEBUG] isAuthorized() CALLED for URL: " + req.getServletPath());
-        System.out.println("[DEBUG] user.getRoles() = " + user.getRoles());
-        if (user.getRoles() == null) {
-            System.out.println("[DEBUG] user.getRoles() is NULL!");
-        } else {
-            System.out.println("[DEBUG] user.getRoles().size() = " + user.getRoles().size());
-        }
+    String url = req.getServletPath();
+    System.out.println("[DEBUG] isAuthorized() CALLED for URL: '" + url + "'");
 
-        if (user.getRoles() == null || user.getRoles().isEmpty()) { // check null + empty
-            System.out.println("[DEBUG] Roles chưa được load, đang fetch từ DB...");
-            RoleDBContext db = new RoleDBContext();
-            ArrayList<Role> roles = db.getByUserId(user.getId());
-            System.out.println("[DEBUG] Số lượng roles load được: " + (roles != null ? roles.size() : "null"));
-            user.setRoles(roles);
-            req.getSession().setAttribute("auth", user); // cập nhật lại session
-        }
+    if (user.getRoles() == null || user.getRoles().isEmpty()) {
+        System.out.println("[DEBUG] Roles chưa được load, đang fetch từ DB...");
+        RoleDBContext db = new RoleDBContext();
+        ArrayList<Role> roles = db.getByUserId(user.getId());
+        System.out.println("[DEBUG] Số lượng roles load được: " + (roles != null ? roles.size() : "null"));
+        user.setRoles(roles);
+        req.getSession().setAttribute("auth", user); // cập nhật lại session
+    }
 
-        String url = req.getServletPath();
-        System.out.println("[DEBUG] Checking URL: " + url);
-
-        if (user.getRoles() == null) {
-            System.out.println("[DEBUG] user.getRoles() vẫn NULL sau khi fetch!");
-            return false;
-        }
-
-        for (Role role : user.getRoles()) {
-            if (role == null) {
-                System.out.println("[DEBUG] Role object is NULL!");
-                continue;
-            }
-            System.out.println("[DEBUG] Checking role: " + role.getRoleName());
-            if (role.getFeatures() == null) {
-                System.out.println("[DEBUG] role.getFeatures() is NULL for role: " + role.getRoleName());
-                continue;
-            }
-            for (Feature feature : role.getFeatures()) {
-                System.out.println("[DEBUG] Comparing: " + feature.getfUrl() + " vs " + url);
-                if (feature.getfUrl().equals(url)) {
-                    System.out.println("[DEBUG] MATCH FOUND!");
-                    return true;
-                }
-            }
-        }
+    if (user.getRoles() == null) {
+        System.out.println("[DEBUG] user.getRoles() vẫn NULL sau khi fetch!");
         return false;
     }
 
+    for (Role role : user.getRoles()) {
+        if (role == null) {
+            System.out.println("[DEBUG] Role object is NULL!");
+            continue;
+        }
+        System.out.println("[DEBUG] Checking role: " + role.getRoleName());
+
+        if (role.getFeatures() == null) {
+            System.out.println("[DEBUG] role.getFeatures() is NULL for role: " + role.getRoleName());
+            continue;
+        }
+
+        for (Feature feature : role.getFeatures()) {
+            if (feature == null || feature.getfUrl() == null) continue;
+            
+            String featureUrl = feature.getfUrl().trim();
+            String requestUrl = url.trim();
+
+            System.out.println("[DEBUG] Comparing: '" + featureUrl + "' vs '" + requestUrl + "'");
+
+            if (featureUrl.equalsIgnoreCase(requestUrl)) {
+                System.out.println("[DEBUG] >>> MATCH FOUND!");
+                return true;
+            }
+        }
+    }
+
+    System.out.println("[DEBUG] No match found for URL: '" + url + "'");
+    return false;
+}
     protected abstract void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException;
 

@@ -4,6 +4,7 @@
  */
 package model;
 import java.sql.Date;
+import java.util.ArrayList;
 /**
  *
  * @author Hiro
@@ -15,6 +16,7 @@ public class Employee extends BaseObject {
     private String email;
     private Division division;
     private Employee supervisor;
+    private ArrayList<Employee> subordinates;
 
     public String getEmployeeName() {
         return employeeName;
@@ -64,6 +66,14 @@ public class Employee extends BaseObject {
 
     public void setSupervisor(Employee supervisor) {
         this.supervisor = supervisor;
+    }
+
+    public ArrayList<Employee> getSubordinates() {
+        return subordinates;
+    }
+
+    public void setSubordinates(ArrayList<Employee> subordinates) {
+        this.subordinates = subordinates;
     }
     
 }

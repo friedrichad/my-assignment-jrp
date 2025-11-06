@@ -30,7 +30,7 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
     protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
         try {
-            int typeId = Integer.parseInt(req.getParameter("typeId"));
+            int typeid = Integer.parseInt(req.getParameter("typeid"));
             java.sql.Date startDate = java.sql.Date.valueOf(req.getParameter("startDate"));
             java.sql.Date endDate = java.sql.Date.valueOf(req.getParameter("endDate"));
             String reason = req.getParameter("reason");
@@ -49,7 +49,7 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             // ✅ Tạo đối tượng LeaveRequest
             LeaveRequest lr = new LeaveRequest();
             lr.setEid(user.getEmployee().getId()); // lấy ID nhân viên từ user đã đăng nhập
-            lr.setTypeid(typeId);
+            lr.setTypeid(typeid);
             lr.setStartDate(startDate);
             lr.setEndDate(endDate);
             lr.setNumDays(numDays);

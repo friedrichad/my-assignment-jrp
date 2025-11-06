@@ -1,7 +1,7 @@
 /*
  * Simple controller to display roles, features, and recent logs.
  */
-package controller;
+package controller.dashboard;
 
 import dal.RoleDBContext;
 import jakarta.servlet.ServletException;

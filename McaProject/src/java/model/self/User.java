@@ -68,5 +68,17 @@ public class User extends BaseObject{
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
+    public boolean hasRole(String roleName) {
+    if (roles == null || roles.isEmpty() || roleName == null) {
+        return false;
+    }
+    for (Role r : roles) {
+        if (r.getRoleName().equalsIgnoreCase(roleName)) {
+            return true;
+        }
+    }
+    return false;
+}
+
     
 }

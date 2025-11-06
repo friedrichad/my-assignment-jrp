@@ -84,6 +84,7 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
                     lr.setId(rs.getInt("reqid"));
                     lr.setEid(rs.getInt("eid"));
                     lr.setTypeid(rs.getInt("typeid"));
+                    lr.setLeaveTypeName(rs.getString("leave_type"));
                     lr.setStartDate(rs.getDate("start_date"));
                     lr.setEndDate(rs.getDate("end_date"));
                     lr.setNumDays(rs.getDouble("num_days"));
@@ -185,34 +186,6 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         return list;
     }
 
-    public ArrayList<Employee> getAllSubordinates(int supervisorId) {
-        ArrayList<Employee> list = new ArrayList<>();
-        String sql = """
-        WITH RecursiveCTE AS (
-            SELECT e.eid, e.ename, e.supervisorid
-            FROM Employee e
-            WHERE e.supervisorid = ?
-            UNION ALL
-            SELECT e2.eid, e2.ename, e2.supervisorid
-            FROM Employee e2
-            INNER JOIN RecursiveCTE r ON e2.supervisorid = r.eid
-        )
-        SELECT * FROM RecursiveCTE
-    """;
-        try (PreparedStatement stm = connection.prepareStatement(sql)) {
-            stm.setInt(1, supervisorId);
-            ResultSet rs = stm.executeQuery();
-            while (rs.next()) {
-                Employee e = new Employee();
-                e.setId(rs.getInt("eid"));
-                e.setEmployeeName(rs.getString("ename"));
-                list.add(e);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
 
 // Lấy danh sách đơn nghỉ của toàn bộ cấp dưới
     public ArrayList<LeaveRequest> getRequestsOfSubordinates(int supervisorId) {

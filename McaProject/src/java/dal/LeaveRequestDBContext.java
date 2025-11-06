@@ -186,7 +186,6 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         return list;
     }
 
-
 // Lấy danh sách đơn nghỉ của toàn bộ cấp dưới
     public ArrayList<LeaveRequest> getRequestsOfSubordinates(int supervisorId) {
         ArrayList<LeaveRequest> list = new ArrayList<>();
@@ -254,6 +253,149 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
             e.printStackTrace();
         }
     }
+
+    public boolean hasOverlappingRequest(int eid, Date startDate, Date endDate, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM LeaveRequest "
+                + "WHERE eid = ? "
+                + "AND id <> ? "
+                + "AND ( (startDate <= ? AND endDate >= ?) OR (startDate <= ? AND endDate >= ?) "
+                + "OR (? BETWEEN startDate AND endDate) OR (? BETWEEN startDate AND endDate) )";
+        try {
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1, eid);
+            stm.setInt(2, excludeId);
+            stm.setDate(3, endDate);
+            stm.setDate(4, endDate);
+            stm.setDate(5, startDate);
+            stm.setDate(6, startDate);
+            stm.setDate(7, startDate);
+            stm.setDate(8, endDate);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public int getTotalApprovedDays(int eid) {
+        int total = 0;
+        String sql = "SELECT SUM(num_days) FROM LeaveRequest WHERE eid = ? AND status = 'Approved'";
+        try {
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1, eid);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                total = rs.getInt(1);
+            }
+            rs.close();
+            stm.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return total;
+    }
+
+    public ArrayList<LeaveRequest> searchRequests(int eid, String status, Date from, Date to, int page, int size) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM LeaveRequest WHERE eid = ?");
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND status = ?");
+        }
+        if (from != null) {
+            sql.append(" AND start_date >= ?");
+        }
+        if (to != null) {
+            sql.append(" AND end_date <= ?");
+        }
+        sql.append(" ORDER BY requested_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+        try (PreparedStatement stm = connection.prepareStatement(sql.toString())) {
+            int i = 1;
+            stm.setInt(i++, eid);
+            if (status != null && !status.isEmpty()) {
+                stm.setString(i++, status);
+            }
+            if (from != null) {
+                stm.setDate(i++, from);
+            }
+            if (to != null) {
+                stm.setDate(i++, to);
+            }
+            stm.setInt(i++, (page - 1) * size);
+            stm.setInt(i++, size);
+
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                lr.setId(rs.getInt("reqid"));
+                lr.setStartDate(rs.getDate("start_date"));
+                lr.setEndDate(rs.getDate("end_date"));
+                lr.setReason(rs.getString("reason"));
+                lr.setStatus(rs.getString("status"));
+                lr.setNumDays(rs.getDouble("num_days"));
+                lr.setRequestedAt(rs.getTimestamp("requested_at"));
+                list.add(lr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+// Đếm tổng số đơn nghỉ
+    public int countRequests(int eid, String status, Date from, Date to) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM LeaveRequest WHERE eid = ?");
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND status = ?");
+        }
+        if (from != null) {
+            sql.append(" AND start_date >= ?");
+        }
+        if (to != null) {
+            sql.append(" AND end_date <= ?");
+        }
+
+        try (PreparedStatement stm = connection.prepareStatement(sql.toString())) {
+            int i = 1;
+            stm.setInt(i++, eid);
+            if (status != null && !status.isEmpty()) {
+                stm.setString(i++, status);
+            }
+            if (from != null) {
+                stm.setDate(i++, from);
+            }
+            if (to != null) {
+                stm.setDate(i++, to);
+            }
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    public ArrayList<LeaveType> getLeaveTypes() {
+    ArrayList<LeaveType> list = new ArrayList<>();
+    try {
+        String sql = "SELECT typeid, typename FROM LeaveType";
+        PreparedStatement stm = connection.prepareStatement(sql);
+        ResultSet rs = stm.executeQuery();
+        while (rs.next()) {
+            LeaveType t = new LeaveType();
+            t.setId(rs.getInt("typeid"));
+            t.setTypename(rs.getString("typename"));
+            list.add(t);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return list;
+}
 
     @Override
     public void update(LeaveRequest model) {

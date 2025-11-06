@@ -6,6 +6,7 @@
 
 <%@page contentType="text/html;charset=UTF-8" language="java"%>
 <%@page import="java.util.*, model.LeaveRequest"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 
 <html lang="vi">
@@ -140,73 +141,66 @@
     </head>
     <body>
         <div class="headContainer">
-            <h1>📄 Danh sách đơn nghỉ phép</h1>
-        <a href="${pageContext.request.contextPath}/request/create" class="back">➕ Tạo đơn mới</a>
-        </div>
+            <h2>📅 Danh sách đơn nghỉ phép</h2>
 
+<form method="get" action="${pageContext.request.contextPath}/request/list">
+    <label>Từ ngày:</label> <input type="date" name="from" value="${fromDate}">
+    <label>Đến ngày:</label> <input type="date" name="to" value="${toDate}">
+    <label>Trạng thái:</label>
+    <select name="status">
+        <option value="">--Tất cả--</option>
+        <option value="Pending" ${statusFilter == 'Pending' ? 'selected' : ''}>Pending</option>
+        <option value="Approved" ${statusFilter == 'Approved' ? 'selected' : ''}>Approved</option>
+        <option value="Rejected" ${statusFilter == 'Rejected' ? 'selected' : ''}>Rejected</option>
+    </select>
+    <button type="submit">🔍 Lọc</button>
+</form>
 
-        <%
-        ArrayList<LeaveRequest> requests = (ArrayList<LeaveRequest>) request.getAttribute("requests");
-        String errorMsg = request.getParameter("error");
-        String successMsg = request.getParameter("success");
-        if (errorMsg == null) errorMsg = (String) request.getAttribute("error");
-        if (successMsg == null) successMsg = (String) request.getAttribute("success");
-        %>
+<c:if test="${remainingDays > 0}">
+    <p style="color:green;">✅ Bạn còn ${remainingDays} ngày nghỉ phép.</p>
+</c:if>
+<c:if test="${remainingDays <= 0}">
+    <p style="color:red;">🚫 Bạn đã nghỉ hết số buổi cho phép (99 ngày).</p>
+</c:if>
 
-        <% if (errorMsg != null) { %>
-        <div class="message error">⚠️ <%= errorMsg %></div>
-        <% } else if (successMsg != null) { %>
-        <div class="message success">✅ <%= successMsg %></div>
-        <% } %>
+<table border="1" cellspacing="0" cellpadding="6">
+    <tr>
+        <th>ID</th>
+        <th>Từ ngày</th>
+        <th>Đến ngày</th>
+        <th>Số ngày</th>
+        <th>Trạng thái</th>
+        <th>Lý do</th>
+        <th>Ngày tạo</th>
+        <th>Thao tác</th>
+    </tr>
+    <c:forEach var="r" items="${requests}">
+        <tr>
+            <td>${r.id}</td>
+            <td>${r.startDate}</td>
+            <td>${r.endDate}</td>
+            <td>${r.numDays}</td>
+            <td>${r.status}</td>
+            <td>${r.reason}</td>
+            <td>${r.requestedAt}</td>
+            <td>
+                <c:if test="${r.status == 'Pending'}">
+                    <a href="${pageContext.request.contextPath}/request/edit?id=${r.id}">✏️ Sửa</a>
+                </c:if>
+            </td>
+        </tr>
+    </c:forEach>
+</table>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Mã đơn</th>
-                        <th>Tên nhân viên</th>
-                        <th>Loại nghỉ</th>
-                        <th>Từ ngày</th>
-                        <th>Đến ngày</th>
-                        <th>Số ngày</th>
-                        <th>Lý do</th>
-                        <th>Trạng thái</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <%
-                        if (requests != null && !requests.isEmpty()) {
-                            for (LeaveRequest lr : requests) {
-                    %>
-                    <tr>
-                        <td><%= lr.getId() %></td>
-                        <td><%= lr.getEmployee() != null ? lr.getEmployee().getEmployeeName() : "N/A" %></td>
-                        <td><%= lr.getLeaveTypeName() %></td>
-                        <td><%= lr.getStartDate() %></td>
-                        <td><%= lr.getEndDate() %></td>
-                        <td><%= lr.getNumDays() %></td>
-                        <td><%= lr.getReason() %></td>
-                        <td class="status <%= lr.getStatus() %>"><%= lr.getStatus() != null ? lr.getStatus() : "Pending" %></td>
-                        <td>
-                            <% if (lr.getStatus() == null || "Pending".equalsIgnoreCase(lr.getStatus())) { %>
-                            <a href="${pageContext.request.contextPath}/request/edit?id=<%= lr.getId() %>" class="btn-edit">Sửa</a>
-                            <% } else { %>
-                            <button class="btn-edit" disabled>Đã duyệt</button>
-                            <% } %>
-                        </td>
-                    </tr>
-                    <% } } else { %>
-                    <tr><td colspan="9" style="text-align:center;">Chưa có đơn nghỉ phép nào.</td></tr>
-                    <% } %>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination">
-            <!-- Nút phân trang giả lập -->
-            <a href="#">« Trước</a> | <a href="#">1</a> | <a href="#">2</a> | <a href="#">Tiếp »</a>
-        </div>
+<!-- Phân trang -->
+<div style="margin-top:10px;">
+    <c:forEach var="i" begin="1" end="${totalPages}">
+        <a href="?page=${i}&size=${size}&status=${statusFilter}&from=${fromDate}&to=${toDate}"
+           style="margin-right:5px; ${i == page ? 'font-weight:bold;' : ''}">
+            ${i}
+        </a>
+    </c:forEach>
+</div>
 
 
     </body>

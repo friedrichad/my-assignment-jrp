@@ -379,23 +379,144 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         }
         return 0;
     }
+
     public ArrayList<LeaveType> getLeaveTypes() {
-    ArrayList<LeaveType> list = new ArrayList<>();
-    try {
-        String sql = "SELECT typeid, typename FROM LeaveType";
-        PreparedStatement stm = connection.prepareStatement(sql);
-        ResultSet rs = stm.executeQuery();
-        while (rs.next()) {
-            LeaveType t = new LeaveType();
-            t.setId(rs.getInt("typeid"));
-            t.setTypename(rs.getString("typename"));
-            list.add(t);
+        ArrayList<LeaveType> list = new ArrayList<>();
+        try {
+            String sql = "SELECT typeid, typename FROM LeaveType";
+            PreparedStatement stm = connection.prepareStatement(sql);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveType t = new LeaveType();
+                t.setId(rs.getInt("typeid"));
+                t.setTypename(rs.getString("typename"));
+                list.add(t);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
+        return list;
     }
-    return list;
-}
+
+    public ArrayList<LeaveRequest> getRequestsInRange(int supervisorId, Date from, Date to) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        String sql = """
+        SELECT e.eid, e.ename, lr.start_date, lr.end_date
+        FROM Employee e
+        LEFT JOIN LeaveRequest lr ON e.eid = lr.eid
+            AND lr.status = 'Approved'
+            AND lr.start_date <= ? AND lr.end_date >= ?
+        WHERE (e.supervisorid = ? OR e.eid = ?)
+        ORDER BY e.ename
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setDate(1, to);
+            stm.setDate(2, from);
+            stm.setInt(3, supervisorId);
+            stm.setInt(4, supervisorId); // để nhân viên tự xem chính mình
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                Employee e = new Employee();
+                e.setId(rs.getInt("eid"));
+                e.setEmployeeName(rs.getString("ename"));
+                lr.setEmployee(e);
+                lr.setStartDate(rs.getDate("start_date"));
+                lr.setEndDate(rs.getDate("end_date"));
+                list.add(lr);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public ArrayList<LeaveRequest> getApprovedLeavesByEmployee(int employeeId, Date start, Date end) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        String sql = """
+        SELECT lr.reqid, lr.eid, lr.start_date, lr.end_date, lr.status, lt.typename AS leaveType
+                            FROM LeaveRequest lr
+                            INNER JOIN LeaveType lt ON lr.typeid = lt.typeid
+                            WHERE lr.eid = ? AND lr.status = 'approved'
+                              AND lr.start_date <= ? AND lr.end_date >= ?
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, employeeId);
+            stm.setDate(2, end);
+            stm.setDate(3, start);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                lr.setId(rs.getInt("reqid"));
+                lr.setEid(rs.getInt("eid"));
+                lr.setStartDate(rs.getDate("start_date"));
+                lr.setEndDate(rs.getDate("end_date"));
+                lr.setStatus(rs.getString("status"));
+                lr.setLeaveTypeName(rs.getString("leaveType"));
+                list.add(lr);
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return list;
+    }
+
+    public ArrayList<LeaveRequest> getApprovedLeaves(Date from, Date to) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        String sql = """
+        SELECT 
+            lr.reqid,
+            lr.start_date,
+            lr.end_date,
+            lr.status,
+            lt.typename AS leaveTypeName,
+            e.eid,
+            e.ename,
+            e.supervisorid,
+            s.ename AS supervisorName
+        FROM LeaveRequest lr
+        JOIN LeaveType lt ON lt.typeid = lr.typeid
+        JOIN Employee e ON e.eid = lr.eid
+        LEFT JOIN Employee s ON s.eid = e.supervisorid
+        WHERE lr.status = 'Approved'
+          AND lr.start_date <= ?
+          AND lr.end_date >= ?
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setDate(1, to);
+            stm.setDate(2, from);
+            ResultSet rs = stm.executeQuery();
+
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                lr.setId(rs.getInt("reqid"));
+                lr.setStartDate(rs.getDate("start_date"));
+                lr.setEndDate(rs.getDate("end_date"));
+                lr.setStatus(rs.getString("status"));
+                lr.setLeaveTypeName(rs.getString("leaveTypeName"));
+
+                // Nhân viên nghỉ
+                Employee emp = new Employee();
+                emp.setId(rs.getInt("eid"));
+                emp.setEmployeeName(rs.getString("ename"));
+
+                // Người giám sát (supervisor)
+                Employee supervisor = new Employee();
+                supervisor.setEmployeeName(rs.getString("supervisorName"));
+                emp.setSupervisor(supervisor);
+
+                lr.setEmployee(emp);
+                list.add(lr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public ArrayList<LeaveRequest> getRequestsByEmployeeId(int empId) {
+        return getRequestsByUser(empId);
+    }
 
     @Override
     public void update(LeaveRequest model) {

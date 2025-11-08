@@ -65,9 +65,9 @@ public class ListController extends BaseAuthorizationController {
                 size
         );
         System.out.println("Found requests: " + requests.size());
-for (LeaveRequest r : requests) {
-    System.out.println("Request ID: " + r.getId());
-}
+        for (LeaveRequest r : requests) {
+            System.out.println("Request ID: " + r.getId());
+        }
 
         // ✅ Đếm tổng số dòng để tính số trang
         int totalRecords = dao.countRequests(
@@ -95,7 +95,10 @@ for (LeaveRequest r : requests) {
         req.setAttribute("fromDate", fromStr);
         req.setAttribute("toDate", toStr);
 
-        req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
+        req.setAttribute("pageTitle", "Đơn nghỉ phép");
+        req.setAttribute("contentPage", "/view/request/list.jsp");
+
+        req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
     }
 
     @Override

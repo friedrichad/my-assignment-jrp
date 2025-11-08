@@ -34,8 +34,9 @@ public class ReviewRequestController extends BaseAuthorizationController {
         // Gửi dữ liệu sang JSP
         req.setAttribute("requests", requests);
 
-        // ✅ Chuyển hướng đến trang JSP hiển thị danh sách
-        req.getRequestDispatcher("../view/request/review.jsp").forward(req, resp);
+        req.setAttribute("pageTitle", "Duyệt đơn nghỉ phép");
+    req.setAttribute("contentPage", "/view/request/review.jsp");
+    req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
     }
 
     @Override
@@ -51,6 +52,6 @@ public class ReviewRequestController extends BaseAuthorizationController {
         db.reviewLeaveRequest(reqid, user.getEmployee().getId(), action, reason);
 
         // ✅ Quay lại trang review sau khi xử lý xong
-        resp.sendRedirect("review");
+        resp.sendRedirect(req.getContextPath() + "/request/review");
     }
 }

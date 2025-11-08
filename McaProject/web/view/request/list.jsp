@@ -4,204 +4,255 @@
     Author     : Hiro
 --%>
 
-<%@page contentType="text/html;charset=UTF-8" language="java"%>
-<%@page import="java.util.*, model.LeaveRequest"%>
+<%-- 
+    Document   : list.jsp
+    Created on : Oct 30, 2025
+    Author     : Hiro
+--%>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.*, model.LeaveRequest" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<!-- Giữ toàn bộ CSS riêng cho list -->
+<style>
+    header.list-header {
+        background: #1d7484;
+        color: white;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 6px;
+    }
 
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <title>Danh sách đơn nghỉ phép</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
+    header.list-header h1 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
 
-        <style>
-            html, body {
-                margin: 0;
-                padding: 0;
-                max-width: none !important;
-                min-height: 100vh;
-                font-family: "Segoe UI", Tahoma, sans-serif;
-                background: #fff;
-            }
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        background: white;
+        padding: 1rem 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        align-items: center;
+        margin-top: 15px;
+        border-radius: 6px;
+    }
 
-            h1 {
-                color: white;
-                padding: 10px 20px;
-                margin: 0;
-                font-size: 20px;
-                text-align: left;
-            }
+    .filter-form label {
+        font-weight: 600;
+        margin-right: 5px;
+    }
 
-            .table-container {
-                width: 100%;
-                height: calc(100vh - 120px); /* trừ header + phân trang */
-                overflow: auto;
-            }
+    .filter-form input, .filter-form select, .filter-form button {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
 
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                font-size: 14px;
-            }
+    .filter-form button {
+        background: #1d7484;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
 
-            th, td {
-                border: 1px solid #ccc;
-                padding: 8px 12px;
-                text-align: left;
-                white-space: nowrap;
-            }
+    .filter-form button:hover {
+        background: #125866;
+    }
 
-            th {
-                background: #e3f2fd;
-                font-weight: bold;
-                position: sticky;
-                top: 0;
-                z-index: 1;
-            }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: capitalize;
+    }
 
-            tr:nth-child(even) {
-                background: #f9f9f9;
-            }
-            tr:hover {
-                background: #dbeafe;
-            }
+    .status-badge.Pending { background: #fff3cd; color: #856404; }
+    .status-badge.Approved { background: #d4edda; color: #155724; }
+    .status-badge.Rejected { background: #f8d7da; color: #721c24; }
 
-            .btn-edit {
-                background: #ffc107;
-                border: none;
-                color: white;
-                padding: 4px 8px;
-                border-radius: 4px;
-                cursor: pointer;
-                text-decoration: none;
-            }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 1rem;
+        background: white;
+    }
 
-            .btn-edit[disabled] {
-                background: #ccc;
-                cursor: not-allowed;
-            }
+    th, td {
+        border: 1px solid #e0e0e0;
+        padding: 10px;
+        text-align: left;
+        white-space: nowrap;
+    }
 
-            .status.Pending {
-                color: #ff9800;
-                font-weight: bold;
-            }
-            .status.Approved {
-                color: #4caf50;
-                font-weight: bold;
-            }
-            .status.Rejected {
-                color: #f44336;
-                font-weight: bold;
-            }
+    th {
+        background: #e3f2fd;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
 
-            .back {
-                display: inline-block;
-                margin: 10px 20px;
-                color: white;
-                padding: 8px 14px;
-                border-radius: 6px;
-                text-decoration: none;
-                font-size: 14px;
-            }
+    tr:hover {
+        background: #f1f8ff;
+    }
 
-            .pagination {
-                height: 40px;
-                padding: 10px 20px;
-                text-align: center;
-                background: #f0f2f5;
-            }
+    .btn-edit {
+        background: #ffc107;
+        color: #212529;
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+    }
 
-            .message {
-                padding: 10px 20px;
-                border-radius: 6px;
-                text-align: center;
-                font-weight: 500;
-                margin: 10px 20px;
-            }
+    .btn-edit:hover {
+        background: #e0a800;
+        color: white;
+    }
 
-            .message.error {
-                background: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
-            }
+    .message {
+        margin: 10px 2rem;
+        padding: 10px 15px;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: 500;
+    }
 
-            .message.success {
-                background: #d4edda;
-                color: #155724;
-                border: 1px solid #c3e6cb;
-            }
-            .headContainer{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: #4a90e2;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="headContainer">
-            <h2>📅 Danh sách đơn nghỉ phép</h2>
+    .message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
 
-<form method="get" action="${pageContext.request.contextPath}/request/list">
-    <label>Từ ngày:</label> <input type="date" name="from" value="${fromDate}">
-    <label>Đến ngày:</label> <input type="date" name="to" value="${toDate}">
-    <label>Trạng thái:</label>
-    <select name="status">
-        <option value="">--Tất cả--</option>
-        <option value="Pending" ${statusFilter == 'Pending' ? 'selected' : ''}>Pending</option>
-        <option value="Approved" ${statusFilter == 'Approved' ? 'selected' : ''}>Approved</option>
-        <option value="Rejected" ${statusFilter == 'Rejected' ? 'selected' : ''}>Rejected</option>
-    </select>
-    <button type="submit">🔍 Lọc</button>
-</form>
+    .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
 
-<c:if test="${remainingDays > 0}">
-    <p style="color:green;">✅ Bạn còn ${remainingDays} ngày nghỉ phép.</p>
-</c:if>
-<c:if test="${remainingDays <= 0}">
-    <p style="color:red;">🚫 Bạn đã nghỉ hết số buổi cho phép (99 ngày).</p>
-</c:if>
+    .remaining {
+        margin: 10px 2rem;
+        font-size: 15px;
+        font-weight: 500;
+    }
 
-<table border="1" cellspacing="0" cellpadding="6">
-    <tr>
-        <th>ID</th>
-        <th>Từ ngày</th>
-        <th>Đến ngày</th>
-        <th>Số ngày</th>
-        <th>Trạng thái</th>
-        <th>Lý do</th>
-        <th>Ngày tạo</th>
-        <th>Thao tác</th>
-    </tr>
-    <c:forEach var="r" items="${requests}">
-        <tr>
-            <td>${r.id}</td>
-            <td>${r.startDate}</td>
-            <td>${r.endDate}</td>
-            <td>${r.numDays}</td>
-            <td>${r.status}</td>
-            <td>${r.reason}</td>
-            <td>${r.requestedAt}</td>
-            <td>
-                <c:if test="${r.status == 'Pending'}">
-                    <a href="${pageContext.request.contextPath}/request/edit?id=${r.id}">✏️ Sửa</a>
-                </c:if>
-            </td>
-        </tr>
-    </c:forEach>
-</table>
+    .remaining.good { color: green; }
+    .remaining.bad { color: red; }
 
-<!-- Phân trang -->
-<div style="margin-top:10px;">
-    <c:forEach var="i" begin="1" end="${totalPages}">
-        <a href="?page=${i}&size=${size}&status=${statusFilter}&from=${fromDate}&to=${toDate}"
-           style="margin-right:5px; ${i == page ? 'font-weight:bold;' : ''}">
-            ${i}
+    .pagination {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .pagination a {
+        margin: 0 5px;
+        text-decoration: none;
+        color: #1d7484;
+    }
+
+    .pagination a.active {
+        font-weight: bold;
+        color: #982c61;
+    }
+</style>
+
+<div x-data="{ showMsg: true }">
+    <header class="list-header">
+        <h1>📅 Danh sách đơn nghỉ phép</h1>
+        <a href="${pageContext.request.contextPath}/request/create" 
+           style="background:white;color:#1d7484;padding:8px 14px;border-radius:6px;text-decoration:none;">
+           ➕ Tạo đơn
         </a>
-    </c:forEach>
+    </header>
+
+    <!-- Thông báo -->
+    <c:if test="${not empty success}">
+        <div class="message success" x-show="showMsg" x-init="setTimeout(() => showMsg = false, 3000)">
+            ✅ ${success}
+        </div>
+    </c:if>
+    <c:if test="${not empty error}">
+        <div class="message error" x-show="showMsg" x-init="setTimeout(() => showMsg = false, 3000)">
+            ⚠️ ${error}
+        </div>
+    </c:if>
+
+    <!-- Bộ lọc -->
+    <form method="get" action="${pageContext.request.contextPath}/request/list" class="filter-form">
+        <label>Từ ngày:</label>
+        <input type="date" name="from" value="${fromDate}">
+
+        <label>Đến ngày:</label>
+        <input type="date" name="to" value="${toDate}">
+
+        <label>Trạng thái:</label>
+        <select name="status" onchange="this.form.submit()">
+            <option value="">--Tất cả--</option>
+            <option value="Pending" ${statusFilter == 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Approved" ${statusFilter == 'Approved' ? 'selected' : ''}>Approved</option>
+            <option value="Rejected" ${statusFilter == 'Rejected' ? 'selected' : ''}>Rejected</option>
+        </select>
+
+        <button type="submit">🔍 Lọc</button>
+    </form>
+
+    <!-- Ngày phép -->
+    <c:choose>
+        <c:when test="${remainingDays > 0}">
+            <p class="remaining good">✅ Bạn còn ${remainingDays} ngày nghỉ phép.</p>
+        </c:when>
+        <c:otherwise>
+            <p class="remaining bad">🚫 Bạn đã hết số ngày nghỉ phép cho phép.</p>
+        </c:otherwise>
+    </c:choose>
+
+    <!-- Bảng dữ liệu -->
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Từ ngày</th>
+            <th>Đến ngày</th>
+            <th>Số ngày</th>
+            <th>Trạng thái</th>
+            <th>Lý do</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+        </tr>
+        <c:forEach var="r" items="${requests}">
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.startDate}</td>
+                <td>${r.endDate}</td>
+                <td>${r.numDays}</td>
+                <td><span class="status-badge ${r.status}">${r.status}</span></td>
+                <td>${r.reason}</td>
+                <td>${r.requestedAt}</td>
+                <td>
+                    <c:if test="${r.status == 'Pending'}">
+                        <a href="${pageContext.request.contextPath}/request/edit?id=${r.id}" class="btn-edit">✏️ Sửa</a>
+                    </c:if>
+                </td>
+            </tr>
+        </c:forEach>
+    </table>
+
+    <!-- Phân trang -->
+    <div class="pagination">
+        <c:forEach var="i" begin="1" end="${totalPages}">
+            <a href="?page=${i}&size=${size}&status=${statusFilter}&from=${fromDate}&to=${toDate}"
+               class="${i == page ? 'active' : ''}">
+                ${i}
+            </a>
+        </c:forEach>
+    </div>
 </div>
-
-
-    </body>
-</html>

@@ -4,9 +4,7 @@
     Author     : Hiro
 --%>
 
-</div> <!-- End content -->
-<div style="background-color:#333; color:white; padding:10px; text-align:center;">
-    &copy; 2025 MyAssignmentPrj. All Rights Reserved.
-</div>
-</body>
-</html>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<footer style="text-align:center; margin-top:40px; padding:10px; border-top:1px solid #ddd; color:#777;">
+    <p>© 2025 - Hệ thống quản lý nghỉ phép | Thiết kế bởi Hiro</p>
+</footer>

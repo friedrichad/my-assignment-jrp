@@ -3,185 +3,163 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="model.LeaveType" %>
 
-<!DOCTYPE html>
-<html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <title>Tạo đơn xin nghỉ phép</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
+<div class="container" x-data="leaveForm()">
+    <!-- Form điền đơn -->
+    <div class="form-box">
+        <h1>Tạo đơn xin nghỉ phép</h1>
 
-        <style>
-            html, body {
-                margin: 0;
-                padding: 0;
-                width: 100%;
-                height: 100%;
-                font-size: 1.1rem;
-                background-color: #f0f2f5;
-                max-width: none !important;
+        <form action="${pageContext.request.contextPath}/request/create" method="post" 
+              @submit.prevent="confirmSubmit($event)">
+            
+            <label for="leaveType">Loại nghỉ phép:</label>
+            <select id="leaveType" name="typeid" required>
+                <option value="" disabled selected>Chọn loại nghỉ</option>
+                <% 
+                    ArrayList<LeaveType> leaveTypes = (ArrayList<LeaveType>) request.getAttribute("leaveTypes");
+                    if (leaveTypes != null) {
+                        for (LeaveType lt : leaveTypes) {
+                %>
+                <option value="<%= lt.getId() %>"><%= lt.getTypename() %></option>
+                <% 
+                        }
+                    }
+                %>
+            </select>
 
-            }
+            <label for="startDate">Từ ngày:</label>
+            <input type="date" id="startDate" name="startDate" required @change="calculateDays()">
 
-            body {
-                display: flex;
-                flex-direction: column;
-                width: 100vw;
-                height: 100vh;
-            }
+            <label for="endDate">Đến ngày:</label>
+            <input type="date" id="endDate" name="endDate" required @change="calculateDays()">
 
-            .container {
-                display: flex;
-                flex: 1 1 auto;
-                width: 100%;
-                height: 100%;
-            }
+            <template x-if="numDays > 0">
+                <p><strong>Số ngày nghỉ dự kiến:</strong> <span x-text="numDays"></span> ngày</p>
+            </template>
 
-            .form-box, .info-box {
-                flex: 1 1 0;
-                background-color: #fff;
-                border-radius: 0;
-                box-shadow: none;
-                padding: 2rem;
-                display: flex;
-                flex-direction: column;
-                overflow-y: auto;
-            }
+            <label for="reason">Lý do nghỉ:</label>
+            <textarea id="reason" name="reason" placeholder="Nhập lý do nghỉ..." required></textarea>
 
-            h1, h2 {
-                margin-top: 0;
-                color: #1d7484;
-                text-align: center;
-            }
+            <button type="submit" class="btn-submit">Gửi Đơn</button>
+        </form>
 
-            form {
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            label {
-                font-weight: 600;
-            }
-
-            input, select, textarea {
-                width: 100%;
-                padding: 12px 15px;
-                font-size: 1rem;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                background-color: #f9f9f9;
-                box-sizing: border-box;
-                transition: border 0.2s, box-shadow 0.2s;
-            }
-
-            input:focus, select:focus, textarea:focus {
-                border: 1px solid #1d7484;
-                outline: none;
-                box-shadow: 0 0 5px rgba(29,116,132,0.3);
-            }
-
-            textarea {
-                min-height: 150px;
-                resize: vertical;
-            }
-
-            .btn-submit {
-                background-color: #1d7484;
-                color: white;
-                border: none;
-                padding: 14px;
-                border-radius: 8px;
-                font-size: 1.1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-
-            .btn-submit:hover {
-                background-color: #982c61;
-            }
-
-            .error {
-                color: red;
-                font-weight: bold;
-                text-align: center;
-                margin-top: 0.5rem;
-            }
-
-            .info-box {
-                line-height: 1.6;
-                padding: 2rem;
-                background-color: #eef7f9;
-            }
-
-            .info-box ul {
-                padding-left: 1.4em;
-            }
-
-            /* Responsive */
-            @media (max-width: 1200px) {
-                .container {
-                    flex-direction: column;
-                }
-                .form-box, .info-box {
-                    height: 50%;
-                }
-            }
-        </style>
-    </head>
-    <body>
-
-        <div class="container">
-
-            <!-- Form điền đơn -->
-            <div class="form-box">
-                <h1>Tạo đơn xin nghỉ phép</h1>
-                <form action="${pageContext.request.contextPath}/request/create" method="post">
-                    <label for="leaveType">Loại nghỉ phép:</label>
-                    <select id="leaveType" name="typeid" required>
-                        <option value="" disabled selected>Chọn loại nghỉ</option>
-                        <% 
-                            ArrayList<LeaveType> leaveTypes = (ArrayList<LeaveType>) request.getAttribute("leaveTypes");
-                            if (leaveTypes != null) {
-                                for (LeaveType lt : leaveTypes) {
-                        %>
-                        <option value="<%= lt.getId() %>"><%= lt.getTypename() %></option>
-                        <% 
-                                }
-                            }
-                        %>
-                    </select>
-
-                    <label for="startDate">Từ ngày:</label>
-                    <input type="date" id="startDate" name="startDate" required>
-
-                    <label for="endDate">Đến ngày:</label>
-                    <input type="date" id="endDate" name="endDate" required>
-
-                    <label for="reason">Lý do nghỉ:</label>
-                    <textarea id="reason" name="reason" placeholder="Nhập lý do nghỉ..." required></textarea>
-
-                    <button type="submit" class="btn-submit">Gửi Đơn</button>
-                </form>
-
-                <c:if test="${not empty error}">
-                    <div class="error">${error}</div>
-                </c:if>
+        <c:if test="${not empty error}">
+            <div class="error" x-data="{show:true}" x-init="setTimeout(()=>show=false,3000)" x-show="show">
+                ${error}
             </div>
+        </c:if>
+    </div>
 
-            <!-- Chú thích / quy định nghỉ phép -->
-            <div class="info-box">
-                <h2>Quy định nghỉ phép</h2>
-                <ul>
-                    <li>Mỗi nhân viên được nghỉ phép tối đa 12 ngày/năm.</li>
-                    <li>Đơn xin nghỉ phải gửi trước ít nhất 2 ngày làm việc.</li>
-                    <li>Nếu nghỉ bệnh, cần kèm giấy chứng nhận y tế.</li>
-                    <li>Người quản lý có quyền phê duyệt hoặc từ chối đơn.</li>
-                    <li>Ngày lễ và cuối tuần không tính vào ngày nghỉ phép.</li>
-                </ul>
-                <p>Vui lòng điền đầy đủ thông tin để đơn được phê duyệt nhanh chóng.</p>
-            </div>
+    <!-- Quy định -->
+    <div class="info-box">
+        <h2>Quy định nghỉ phép</h2>
+        <ul>
+            <li>Mỗi nhân viên được nghỉ phép tối đa 12 ngày/năm.</li>
+            <li>Đơn xin nghỉ phải gửi trước ít nhất 2 ngày làm việc.</li>
+            <li>Nếu nghỉ bệnh, cần kèm giấy chứng nhận y tế.</li>
+            <li>Người quản lý có quyền phê duyệt hoặc từ chối đơn.</li>
+            <li>Ngày lễ và cuối tuần không tính vào ngày nghỉ phép.</li>
+        </ul>
+        <p>Vui lòng điền đầy đủ thông tin để đơn được phê duyệt nhanh chóng.</p>
+    </div>
+</div>
 
-        </div>
+<script>
+function leaveForm() {
+    return {
+        numDays: 0,
+        calculateDays() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                const diff = (new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24) + 1;
+                this.numDays = diff > 0 ? diff : 0;
+            }
+        },
+        confirmSubmit(e) {
+            if (confirm('Bạn có chắc muốn gửi đơn xin nghỉ phép không?')) {
+                e.target.submit();
+            }
+        }
+    }
+}
+</script>
 
-    </body>
-</html>
+<style>
+.container {
+    display: flex;
+    flex: 1;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+}
+.form-box, .info-box {
+    flex: 1;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    padding: 2rem;
+    margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+h1, h2 {
+    margin-top: 0;
+    color: #1d7484;
+    text-align: center;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+label { font-weight: 600; }
+input, select, textarea {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+    border: 1px solid #1d7484;
+    box-shadow: 0 0 5px rgba(29,116,132,0.3);
+    outline: none;
+}
+textarea { min-height: 120px; }
+.btn-submit {
+    background-color: #1d7484;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-submit:hover { background-color: #982c61; }
+.error {
+    color: white;
+    background-color: #ff4d4d;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 1rem;
+    animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.info-box {
+    background-color: #eef7f9;
+    line-height: 1.6;
+}
+.info-box ul { padding-left: 1.4em; }
+@media (max-width: 1024px) {
+    .container { flex-direction: column; }
+}
+</style>

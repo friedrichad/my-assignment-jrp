@@ -138,12 +138,12 @@
             <% if ("Pending".equalsIgnoreCase(status)) { %>
                 <form action="review" method="post" style="display:inline;">
                     <input type="hidden" name="reqid" value="<%= lr.getId() %>">
-                    <input type="hidden" name="action" value="approve">
+                    <input type="hidden" name="action" value="Approved">
                     <button type="submit" class="btn approve">Approve</button>
                 </form>
                 <form action="review" method="post" style="display:inline;">
                     <input type="hidden" name="reqid" value="<%= lr.getId() %>">
-                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="action" value="Rejected">
                     <button type="submit" class="btn reject">Reject</button>
                 </form>
             <% } else { %>

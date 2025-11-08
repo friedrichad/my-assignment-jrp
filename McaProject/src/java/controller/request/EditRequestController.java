@@ -31,7 +31,9 @@ public class EditRequestController extends BaseAuthorizationController {
         String idRaw = req.getParameter("id");
         if (idRaw == null || idRaw.isEmpty()) {
             req.setAttribute("error", "Thiếu mã đơn nghỉ phép!");
-            req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
+            req.setAttribute("pageTitle", "Danh sách đơn nghỉ phép");
+            req.setAttribute("contentPage", "/view/request/list.jsp");
+            req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
             return;
         }
 
@@ -40,7 +42,9 @@ public class EditRequestController extends BaseAuthorizationController {
             id = Integer.parseInt(idRaw);
         } catch (NumberFormatException e) {
             req.setAttribute("error", "ID không hợp lệ!");
-            req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
+            req.setAttribute("pageTitle", "Danh sách đơn nghỉ phép");
+            req.setAttribute("contentPage", "/view/request/list.jsp");
+            req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
             return;
         }
 
@@ -51,21 +55,26 @@ public class EditRequestController extends BaseAuthorizationController {
 
         if (lr == null) {
             req.setAttribute("error", "Không tìm thấy đơn nghỉ phép!");
-            req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
+            req.setAttribute("pageTitle", "Danh sách đơn nghỉ phép");
+            req.setAttribute("contentPage", "/view/request/list.jsp");
+            req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
             return;
         }
 
-        // ✅ Chỉ cho phép chỉnh sửa nếu Pending và đúng user
         if (!"Pending".equalsIgnoreCase(lr.getStatus())
                 || lr.getEid() != user.getEmployee().getId()) {
             req.setAttribute("error", "Bạn không thể chỉnh sửa đơn này!");
-            req.getRequestDispatcher("/view/request/list.jsp").forward(req, resp);
+            req.setAttribute("pageTitle", "Danh sách đơn nghỉ phép");
+            req.setAttribute("contentPage", "/view/request/list.jsp");
+            req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
             return;
         }
 
         req.setAttribute("leaveTypes", leaveTypes);
         req.setAttribute("request", lr);
-        req.getRequestDispatcher("/view/request/edit.jsp").forward(req, resp);
+        req.setAttribute("pageTitle", "Chỉnh sửa đơn nghỉ phép");
+        req.setAttribute("contentPage", "/view/request/edit.jsp");
+        req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
     }
 
     @Override

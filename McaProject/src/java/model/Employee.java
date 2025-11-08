@@ -13,6 +13,7 @@ public class Employee extends BaseObject {
     private String employeeName;
     private boolean gender;
     private java.sql.Date dob;
+    private String phone; 
     private String email;
     private Division division;
     private Employee supervisor;
@@ -75,5 +76,14 @@ public class Employee extends BaseObject {
     public void setSubordinates(ArrayList<Employee> subordinates) {
         this.subordinates = subordinates;
     }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    
     
 }

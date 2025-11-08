@@ -23,7 +23,10 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             throws ServletException, IOException {
         // ✅ Nạp danh sách loại nghỉ để hiển thị trong form
         loadLeaveTypes(req);
-        req.getRequestDispatcher("/view/request/create.jsp").forward(req, resp);
+        req.setAttribute("pageTitle", "Tạo đơn nghỉ phép");
+        req.setAttribute("contentPage", "/view/request/create.jsp");
+        req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
+
     }
 
     @Override

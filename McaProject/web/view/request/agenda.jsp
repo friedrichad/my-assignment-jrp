@@ -3,97 +3,80 @@
     Created on : Nov 7, 2025, 11:11:32 AM
     Author     : Hiro
 --%>
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@page import="java.time.LocalDate"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="model.LeaveRequest"%>
+<%
+    ArrayList<LeaveRequest> leaves = (ArrayList<LeaveRequest>) request.getAttribute("leaves");
+    LocalDate today = LocalDate.now();
+    LocalDate startOfMonth = today.withDayOfMonth(1);
+%>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Lịch làm việc của tôi</title>
-
-    <!-- FullCalendar CSS -->
+    <title>L?ch l�m vi?c c?a t�i</title>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
-
-    <!-- FullCalendar JS -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
     <style>
-        body {
-            font-family: "Segoe UI", sans-serif;
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 0;
-        }
-
-        h2 {
-            text-align: center;
-            padding: 20px;
-            color: #333;
-        }
-
-        #calendar {
-            max-width: 900px;
-            margin: 40px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .fc-daygrid-event {
-            border-radius: 8px;
-            font-size: 0.9em;
-            text-align: center;
-        }
+        body { font-family: "Segoe UI", sans-serif; background: #f4f6f8; margin: 0; }
+        h2 { text-align: center; padding: 20px; color: #333; }
+        #calendar { max-width: 900px; margin: 40px auto; background: white; padding: 20px; border-radius: 16px;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <h2>Lịch làm việc của tôi</h2>
+    <h2>L?ch l�m vi?c c?a t�i</h2>
     <div id="calendar"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
+            var events = [];
 
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'vi', // ngôn ngữ tiếng Việt
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,listMonth'
-                },
-                events: {
-                    url: '<%= request.getContextPath() %>/request/agenda',
-                    failure: function() {
-                        alert('Không thể tải dữ liệu lịch!');
+            <%-- Ngh? ph�p (??) --%>
+            <% for (LeaveRequest lr : leaves) { %>
+                events.push({
+                    title: 'Ngh? ph�p',
+                    start: '<%= lr.getStartDate().toLocalDate() %>',
+                    end: '<%= lr.getEndDate().toLocalDate().plusDays(1) %>',
+                    color: '#e74c3c'
+                });
+            <% } %>
+
+            <%-- ?i l�m (xanh) --%>
+            <% 
+                LocalDate todayLoop = startOfMonth;
+                while (!todayLoop.isAfter(today)) {
+                    boolean isLeave = false;
+                    for (LeaveRequest lr : leaves) {
+                        LocalDate start = lr.getStartDate().toLocalDate();
+                        LocalDate end = lr.getEndDate().toLocalDate();
+                        if (!todayLoop.isBefore(start) && !todayLoop.isAfter(end)) {
+                            isLeave = true; break;
+                        }
                     }
-                },
-                eventDidMount: function(info) {
-                    // Tooltip gợi ý nhanh
-                    const tooltip = document.createElement('div');
-                    tooltip.innerText = info.event.title;
-                    tooltip.style.position = 'absolute';
-                    tooltip.style.background = 'rgba(0,0,0,0.7)';
-                    tooltip.style.color = 'white';
-                    tooltip.style.padding = '5px 8px';
-                    tooltip.style.borderRadius = '6px';
-                    tooltip.style.fontSize = '12px';
-                    tooltip.style.display = 'none';
-                    document.body.appendChild(tooltip);
+                    if (!isLeave) {
+            %>
+                events.push({
+                    title: '?i l�m',
+                    start: '<%= todayLoop %>',
+                    end: '<%= todayLoop.plusDays(1) %>',
+                    color: '#2ecc71'
+                });
+            <% }
+                todayLoop = todayLoop.plusDays(1);
+            } %>
 
-                    info.el.addEventListener('mouseenter', function(e) {
-                        tooltip.style.left = e.pageX + 10 + 'px';
-                        tooltip.style.top = e.pageY + 'px';
-                        tooltip.style.display = 'block';
-                    });
-
-                    info.el.addEventListener('mouseleave', function() {
-                        tooltip.style.display = 'none';
-                    });
-                }
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'vi',
+                height: 'auto',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,listMonth' },
+                events: events
             });
-
             calendar.render();
         });
     </script>

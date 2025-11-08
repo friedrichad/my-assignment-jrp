@@ -16,7 +16,6 @@ import model.self.User;
  * @author hiro
  */
 public abstract class BaseAuthenticationController extends HttpServlet {
-
     private boolean isAuthenticated(HttpServletRequest req) {
         User u = (User) req.getSession().getAttribute("auth");
         return u != null;

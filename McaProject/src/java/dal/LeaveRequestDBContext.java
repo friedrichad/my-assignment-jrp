@@ -108,6 +108,25 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
 
     }
 
+    public int getEidByUid(int uid) {
+        String sql = """
+        SELECT m.eid 
+        FROM [User] u
+        INNER JOIN Matching m ON u.uid = m.uid
+        WHERE u.uid = ?
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, uid);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("eid");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1; // Không tìm thấy
+    }
+
     public LeaveRequest getById(int reqid) {
         String sql = """
         SELECT lr.reqid, lr.eid, e.ename AS employee_name,
@@ -191,15 +210,18 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         ArrayList<LeaveRequest> list = new ArrayList<>();
         String sql = """
         WITH RecursiveCTE AS (
-            SELECT e.eid, e.ename, e.supervisorid
+            SELECT e.eid
             FROM Employee e
             WHERE e.supervisorid = ?
             UNION ALL
-            SELECT e2.eid, e2.ename, e2.supervisorid
+            SELECT e2.eid
             FROM Employee e2
             INNER JOIN RecursiveCTE r ON e2.supervisorid = r.eid
         )
-        SELECT lr.*, e.ename AS employee_name, lt.typename AS leave_type
+        SELECT lr.reqid, lr.eid, e.ename AS employee_name,
+               lr.typeid, lt.typename AS leave_type,
+               lr.start_date, lr.end_date, lr.num_days,
+               lr.reason, lr.status, lr.approverid, lr.requested_at
         FROM LeaveRequest lr
         INNER JOIN Employee e ON lr.eid = e.eid
         INNER JOIN LeaveType lt ON lr.typeid = lt.typeid
@@ -208,27 +230,28 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
     """;
         try (PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setInt(1, supervisorId);
-            ResultSet rs = stm.executeQuery();
-            while (rs.next()) {
-                LeaveRequest lr = new LeaveRequest();
-                lr.setId(rs.getInt("reqid"));
-                lr.setEid(rs.getInt("eid"));
-                lr.setTypeid(rs.getInt("typeid"));
-                lr.setStartDate(rs.getDate("start_date"));
-                lr.setEndDate(rs.getDate("end_date"));
-                lr.setNumDays(rs.getDouble("num_days"));
-                lr.setReason(rs.getString("reason"));
-                lr.setStatus(rs.getString("status"));
-                lr.setApproverid((Integer) rs.getObject("approverid"));
-                lr.setRequestedAt(rs.getTimestamp("requested_at"));
-                lr.setLeaveTypeName(rs.getString("leave_type"));
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest();
+                    lr.setId(rs.getInt("reqid"));
+                    lr.setEid(rs.getInt("eid"));
+                    lr.setTypeid(rs.getInt("typeid"));
+                    lr.setLeaveTypeName(rs.getString("leave_type"));
+                    lr.setStartDate(rs.getDate("start_date"));
+                    lr.setEndDate(rs.getDate("end_date"));
+                    lr.setNumDays(rs.getDouble("num_days"));
+                    lr.setReason(rs.getString("reason"));
+                    lr.setStatus(rs.getString("status"));
+                    lr.setApproverid((Integer) rs.getObject("approverid"));
+                    lr.setRequestedAt(rs.getTimestamp("requested_at"));
 
-                Employee emp = new Employee();
-                emp.setId(rs.getInt("eid"));
-                emp.setEmployeeName(rs.getString("employee_name"));
-                lr.setEmployee(emp);
+                    Employee emp = new Employee();
+                    emp.setId(rs.getInt("eid"));
+                    emp.setEmployeeName(rs.getString("employee_name"));
+                    lr.setEmployee(emp);
 
-                list.add(lr);
+                    list.add(lr);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -254,27 +277,29 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         }
     }
 
-    public boolean hasOverlappingRequest(int eid, Date startDate, Date endDate, int excludeId) {
-        String sql = "SELECT COUNT(*) FROM LeaveRequest "
-                + "WHERE eid = ? "
-                + "AND id <> ? "
-                + "AND ( (startDate <= ? AND endDate >= ?) OR (startDate <= ? AND endDate >= ?) "
-                + "OR (? BETWEEN startDate AND endDate) OR (? BETWEEN startDate AND endDate) )";
-        try {
-            PreparedStatement stm = connection.prepareStatement(sql);
+    public boolean checkOverlapLeave(int eid, Date start, Date end) {
+        String sql = """
+        SELECT COUNT(*) AS cnt FROM LeaveRequest
+                WHERE eid = ? 
+                AND (
+                    (start_date <= ? AND end_date >= ?) OR
+                    (start_date <= ? AND end_date >= ?) OR
+                    (start_date >= ? AND end_date <= ?)
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setInt(1, eid);
-            stm.setInt(2, excludeId);
-            stm.setDate(3, endDate);
-            stm.setDate(4, endDate);
-            stm.setDate(5, startDate);
-            stm.setDate(6, startDate);
-            stm.setDate(7, startDate);
-            stm.setDate(8, endDate);
+            stm.setDate(2, start);
+            stm.setDate(3, start);
+            stm.setDate(4, end);
+            stm.setDate(5, end);
+            stm.setDate(6, start);
+            stm.setDate(7, end);
+
             ResultSet rs = stm.executeQuery();
             if (rs.next()) {
-                return rs.getInt(1) > 0;
+                return rs.getInt("cnt") > 0;
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
@@ -514,6 +539,74 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
         return list;
     }
 
+    public LeaveRequest get(int id) {
+        LeaveRequest lr = null;
+        String sql = "DELETE FROM LeaveRequest WHERE reqid = ?";
+        try {
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1, id);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                lr = new LeaveRequest();
+                lr.setId(rs.getInt("id"));
+                lr.setEid(rs.getInt("eid"));
+                lr.setTypeid(rs.getInt("typeid"));
+                lr.setStartDate(rs.getDate("startDate"));
+                lr.setEndDate(rs.getDate("endDate"));
+                lr.setNumDays(rs.getDouble("numDays"));
+                lr.setStatus(rs.getString("status"));
+                lr.setReason(rs.getString("reason"));
+                lr.setRequestedAt(rs.getDate("requestedAt"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lr;
+    }
+
+    public void delete(int id) {
+        String sql = "DELETE FROM LeaveRequest WHERE reqid = ?";
+        try {
+            PreparedStatement stm = connection.prepareStatement(sql);
+            stm.setInt(1, id);
+            stm.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<LeaveRequest> listByUser(int uid) {
+        ArrayList<LeaveRequest> list = new ArrayList<>();
+        String sql = """
+        SELECT lr.reqid, lr.eid, lr.typeid, lr.start_date, lr.end_date,
+                       lr.num_days, lr.status, lr.reason, lr.requested_at
+                FROM LeaveRequest lr
+                INNER JOIN Matching m ON lr.eid = m.eid
+                WHERE m.uid = ?
+                ORDER BY lr.requested_at DESC
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, uid);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest();
+                lr.setId(rs.getInt("id"));
+                lr.setEid(rs.getInt("eid"));
+                lr.setTypeid(rs.getInt("typeid"));
+                lr.setStartDate(rs.getDate("startDate"));
+                lr.setEndDate(rs.getDate("endDate"));
+                lr.setNumDays(rs.getDouble("numDays"));
+                lr.setStatus(rs.getString("status"));
+                lr.setReason(rs.getString("reason"));
+                lr.setRequestedAt(rs.getDate("requestedAt"));
+                list.add(lr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public ArrayList<LeaveRequest> getRequestsByEmployeeId(int empId) {
         return getRequestsByUser(empId);
     }
@@ -530,11 +623,6 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
 
     @Override
     public ArrayList<LeaveRequest> list() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public LeaveRequest get(int id) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

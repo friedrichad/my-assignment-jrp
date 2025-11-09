@@ -108,4 +108,12 @@ public class LeaveRequest extends BaseObject {
         this.leaveTypeName = leaveTypeName;
     }
 
+    public Date getFrom() {
+        return startDate;
+    }
+
+    public Date getTo() {
+        return endDate;
+    }
+
 }

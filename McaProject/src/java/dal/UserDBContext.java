@@ -72,6 +72,7 @@ public class UserDBContext extends DBContext<User> {
         }
         return null;
     }
+    
     public ArrayList<Employee> getAllSubordinates(int supervisorId) {
         ArrayList<Employee> list = new ArrayList<>();
         String sql = """

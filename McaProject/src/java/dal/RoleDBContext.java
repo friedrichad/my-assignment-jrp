@@ -20,63 +20,54 @@ import model.self.Role;
  */
 public class RoleDBContext extends DBContext<Role> {
 
-    public ArrayList<Role> getByUserId(int id) {
-        ArrayList<Role> roles = new ArrayList<>();
-        System.out.println(">>> [DEBUG] Fetching roles for userId = " + id);
+    public ArrayList<Role> getByUserId(int userId) {
+    ArrayList<Role> roles = new ArrayList<>();
+    String sql = """
+        SELECT r.rid AS rid, r.roleName, f.fid AS fid, f.url AS fUrl
+                FROM [Role] r
+                INNER JOIN [UserRole] ur ON ur.rid = r.rid
+                LEFT JOIN [RolePermission] rf ON rf.rid = r.rid
+                LEFT JOIN [Feature] f ON f.fid = rf.fid
+                WHERE ur.uid = ?
+    """;
 
-        try {
-            String sql = """
-            SELECT r.rid, r.rolename, f.fid, f.url
-            FROM [User] u 
-            INNER JOIN [UserRole] ur ON u.uid = ur.uid
-            INNER JOIN [Role] r ON r.rid = ur.rid
-            INNER JOIN [RolePermission] rf ON rf.rid = r.rid
-            INNER JOIN [Feature] f ON f.fid = rf.fid
-            WHERE u.uid = ?
-        """;
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setInt(1, userId);
+        ResultSet rs = stm.executeQuery();
 
-            PreparedStatement stm = connection.prepareStatement(sql);
-            stm.setInt(1, id);
-            ResultSet rs = stm.executeQuery();
+        int currentRoleId = -1;
+        Role currentRole = null;
 
-            while (rs.next()) {
-                int rid = rs.getInt("rid");
-                String rolename = rs.getString("rolename");
-                int fid = rs.getInt("fid");
-                String furl = rs.getString("url"); // kiểm tra tên cột trong DB nhé
+        while (rs.next()) {
+            int rid = rs.getInt("rid");
 
-                Role current = null;
-                for (Role r : roles) {
-                    if (r.getId() == rid) {
-                        current = r;
-                        break;
-                    }
-                }
-
-                if (current == null) {
-                    current = new Role();
-                    current.setId(rid);
-                    current.setRoleName(rolename);
-                    current.setFeatures(new ArrayList<>());
-                    roles.add(current);
-                    System.out.println(">>> [DEBUG] Found new role: " + rolename);
-                }
-
-                Feature f = new Feature();
-                f.setId(fid);
-                f.setfUrl(furl);
-                current.getFeatures().add(f);
-                System.out.println("    -> [DEBUG] Added feature: " + furl);
+            // Nếu role mới → tạo mới và thêm vào danh sách
+            if (currentRole == null || rid != currentRoleId) {
+                currentRole = new Role();
+                currentRole.setId(rid);
+                currentRole.setRoleName(rs.getString("roleName"));
+                currentRole.setFeatures(new ArrayList<>());
+                roles.add(currentRole);
+                currentRoleId = rid;
             }
 
-            System.out.println(">>> [DEBUG] Total roles loaded: " + roles.size());
-
-        } catch (SQLException ex) {
-            Logger.getLogger(RoleDBContext.class.getName()).log(Level.SEVERE, null, ex);
+            // Thêm feature vào role hiện tại nếu có
+            int fid = rs.getInt("fid");
+            String fUrl = rs.getString("fUrl");
+            if (fid > 0 && fUrl != null) {
+                Feature f = new Feature();
+                f.setId(fid);
+                f.setfUrl(fUrl);
+                currentRole.getFeatures().add(f);
+            }
         }
 
-        return roles;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    return roles;
+}
 
     @Override
     public void insert(Role model) {

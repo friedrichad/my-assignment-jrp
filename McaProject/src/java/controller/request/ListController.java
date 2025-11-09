@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import model.LeaveRequest;
 import model.self.User;
@@ -55,7 +56,7 @@ public class ListController extends BaseAuthorizationController {
 
         LeaveRequestDBContext dao = new LeaveRequestDBContext();
 
-        // ✅ Lấy danh sách đơn nghỉ (theo bộ lọc & phân trang)
+        // ✅ Lấy danh sách đơn nghỉ có lọc và phân trang
         ArrayList<LeaveRequest> requests = dao.searchRequests(
                 user.getEmployee().getId(),
                 status,
@@ -64,12 +65,8 @@ public class ListController extends BaseAuthorizationController {
                 page,
                 size
         );
-        System.out.println("Found requests: " + requests.size());
-        for (LeaveRequest r : requests) {
-            System.out.println("Request ID: " + r.getId());
-        }
 
-        // ✅ Đếm tổng số dòng để tính số trang
+        // ✅ Đếm tổng bản ghi để phân trang
         int totalRecords = dao.countRequests(
                 user.getEmployee().getId(),
                 status,
@@ -79,12 +76,21 @@ public class ListController extends BaseAuthorizationController {
 
         int totalPages = (int) Math.ceil((double) totalRecords / size);
 
-        // ✅ Tổng ngày nghỉ đã Approved
-        int totalApprovedDays = dao.getTotalApprovedDays(user.getEmployee().getId());
-        int remainingDays = 99 - totalApprovedDays;
+        // ✅ Lấy năm hiện tại (để tính ngày nghỉ phép theo từng năm)
+        int currentYear = LocalDate.now().getYear();
+
+        // ✅ Tổng số ngày đã được duyệt trong năm hiện tại
+        int totalApprovedDays = dao.getTotalApprovedDaysInYear(user.getEmployee().getId(), currentYear);
+
+        // ✅ Reset mỗi năm: mỗi nhân viên có 12 ngày phép/năm
+        int totalDaysPerYear = 12;
+        int remainingDays = totalDaysPerYear - totalApprovedDays;
+
+        if (remainingDays < 0) remainingDays = 0; // không cho âm
 
         dao.closeConnection();
 
+        // ✅ Gửi dữ liệu ra view
         req.setAttribute("requests", requests);
         req.setAttribute("page", page);
         req.setAttribute("totalPages", totalPages);
@@ -94,6 +100,7 @@ public class ListController extends BaseAuthorizationController {
         req.setAttribute("statusFilter", status);
         req.setAttribute("fromDate", fromStr);
         req.setAttribute("toDate", toStr);
+        req.setAttribute("currentYear", currentYear);
 
         req.setAttribute("pageTitle", "Đơn nghỉ phép");
         req.setAttribute("contentPage", "/view/request/list.jsp");

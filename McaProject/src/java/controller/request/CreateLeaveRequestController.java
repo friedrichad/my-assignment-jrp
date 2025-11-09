@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import model.LeaveType;
+import model.self.Role;
 
 @WebServlet("/request/create")
 public class CreateLeaveRequestController extends BaseAuthorizationController {
@@ -26,10 +27,9 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
         req.setAttribute("pageTitle", "Tạo đơn nghỉ phép");
         req.setAttribute("contentPage", "/view/request/create.jsp");
         req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
-
     }
 
-     @Override
+    @Override
     protected void processPost(HttpServletRequest req, HttpServletResponse resp, User user)
             throws ServletException, IOException {
         try {
@@ -44,26 +44,22 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
 
             LeaveRequestDBContext db = new LeaveRequestDBContext();
 
-            // ⚙️ Kiểm tra logic hợp lệ:
-            // 1️⃣ Không để ngày bắt đầu > ngày kết thúc
+            // ⚙️ Kiểm tra logic hợp lệ
             if (startDate.after(endDate)) {
                 reloadFormWithError(req, resp, "❌ Ngày bắt đầu không thể sau ngày kết thúc.");
                 return;
             }
 
-            // 2️⃣ Không nghỉ quá dài (ví dụ: 30 ngày)
             if (numDays > 30) {
                 reloadFormWithError(req, resp, "⚠️ Không được nghỉ quá 30 ngày liên tiếp.");
                 return;
             }
 
-            // 3️⃣ Không để lý do trống
             if (reason.isEmpty()) {
                 reloadFormWithError(req, resp, "⚠️ Vui lòng nhập lý do xin nghỉ.");
                 return;
             }
 
-            // 4️⃣ Kiểm tra trùng đơn (đã có đơn xin nghỉ trùng ngày chưa)
             boolean overlap = db.checkOverlapLeave(user.getEmployee().getId(), startDate, endDate);
             if (overlap) {
                 reloadFormWithError(req, resp, "⚠️ Bạn đã có đơn xin nghỉ trùng thời gian này.");
@@ -79,15 +75,27 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
             lr.setNumDays(numDays);
             lr.setReason(reason);
 
-            // ✅ Nếu là admin → đơn được duyệt luôn
-            if (user.hasRole("Admin")) {
+            // ✅ Kiểm tra role - Admin thì auto Approved
+            System.out.println(">>> [DEBUG] Kiểm tra quyền user trước khi insert:");
+            if (user.getRoles() != null) {
+                for (Role r : user.getRoles()) {
+                    System.out.println(" - Role: " + r.getRoleName());
+                }
+            }
+
+            boolean isAdmin = user.hasRole("Admin"); // đảm bảo hàm này dùng equalsIgnoreCase
+            System.out.println(">>> [DEBUG] hasRole('Admin') = " + isAdmin);
+
+            if (isAdmin) {
                 lr.setStatus("Approved");
+                System.out.println(">>> [DEBUG] Admin detected → Đơn tự động duyệt!");
             } else {
                 lr.setStatus("Pending");
             }
 
             // ✅ Insert vào DB
             db.insert(lr);
+            System.out.println("✅ Insert thành công đơn nghỉ phép (eid=" + lr.getEid() + ", status=" + lr.getStatus() + ")");
 
             // ✅ Quay lại danh sách
             resp.sendRedirect(req.getContextPath() + "/request/list");
@@ -98,13 +106,13 @@ public class CreateLeaveRequestController extends BaseAuthorizationController {
         }
     }
 
-
     private void loadLeaveTypes(HttpServletRequest req) {
         LeaveRequestDBContext ltDao = new LeaveRequestDBContext();
         ArrayList<LeaveType> leaveTypes = ltDao.listLeaveType();
         req.setAttribute("leaveTypes", leaveTypes);
     }
-      private void reloadFormWithError(HttpServletRequest req, HttpServletResponse resp, String message)
+
+    private void reloadFormWithError(HttpServletRequest req, HttpServletResponse resp, String message)
             throws ServletException, IOException {
         loadLeaveTypes(req);
         req.setAttribute("error", message);

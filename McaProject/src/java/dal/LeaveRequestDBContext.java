@@ -22,7 +22,7 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
             String sql = """
             INSERT INTO LeaveRequest
                 (eid, typeid, start_date, end_date, num_days, reason, status, approverid, requested_at)
-            VALUES (?, ?, ?, ?, ?, ?, DEFAULT, NULL, DEFAULT)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NULL, DEFAULT)
         """;
 
             PreparedStatement stm = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -32,6 +32,7 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
             stm.setDate(4, new java.sql.Date(lr.getEndDate().getTime()));
             stm.setDouble(5, lr.getNumDays());
             stm.setString(6, lr.getReason());
+            stm.setString(7, lr.getStatus());
 
             stm.executeUpdate();
 
@@ -279,12 +280,15 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
 
     public boolean checkOverlapLeave(int eid, Date start, Date end) {
         String sql = """
-        SELECT COUNT(*) AS cnt FROM LeaveRequest
-                WHERE eid = ? 
-                AND (
-                    (start_date <= ? AND end_date >= ?) OR
-                    (start_date <= ? AND end_date >= ?) OR
-                    (start_date >= ? AND end_date <= ?)
+        SELECT COUNT(*) AS cnt 
+                            FROM LeaveRequest
+                            WHERE eid = ? 
+                              AND status IN ('Pending', 'Approved')
+                              AND (
+                                  (start_date BETWEEN ? AND ?)
+                                  OR (end_date BETWEEN ? AND ?)
+                                  OR (start_date <= ? AND end_date >= ?)
+                              )
     """;
         try (PreparedStatement stm = connection.prepareStatement(sql)) {
             stm.setInt(1, eid);
@@ -605,6 +609,28 @@ public class LeaveRequestDBContext extends DBContext<LeaveRequest> {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int getTotalApprovedDaysInYear(int eid, int year) {
+        int total = 0;
+        String sql = """
+        SELECT ISNULL(SUM(num_days), 0) AS total
+                            FROM LeaveRequest
+                            WHERE eid = ?
+                              AND status = 'Approved'
+                              AND YEAR(start_date) = ?
+    """;
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, eid);
+            stm.setInt(2, year);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                total = rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return total;
     }
 
     public ArrayList<LeaveRequest> getRequestsByEmployeeId(int empId) {

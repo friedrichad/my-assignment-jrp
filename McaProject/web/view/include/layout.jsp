@@ -11,96 +11,219 @@
 <head>
     <meta charset="UTF-8">
     <title><c:out value="${pageTitle != null ? pageTitle : 'Quản lý nhân viên'}" /></title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/sakura.css">
-    <script defer src="${pageContext.request.contextPath}/assets/js/alpine.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <style>
+        :root {
+            --color-primary: #2563eb;
+            --color-primary-dark: #1e40af;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --text-light: #f9fafb;
+            --text-muted: #9ca3af;
+            --main-bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: #f6f7fb;
             margin: 0;
-            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--main-bg);
+            color: #111;
+            overflow-x: hidden;
         }
 
         header {
-            background-color: #374151;
+            background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary));
             color: white;
-            padding: 15px 25px;
-            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 25px;
+            font-size: 1.1em;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 999; /* nâng cao để nổi trên main */
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            position: relative;
+        }
+
+        .account-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+
+        .account-btn:hover { opacity: 0.85; }
+
+        .dropdown {
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            min-width: 180px;
+            z-index: 2000; /* fix: nổi hẳn lên trên */
+        }
+
+        .dropdown a {
+            display: block;
+            color: #374151;
+            text-decoration: none;
+            padding: 10px 15px;
+            transition: 0.3s;
+        }
+
+        .dropdown a:hover {
+            background: #f3f4f6;
+            color: var(--color-primary);
         }
 
         .container {
             display: flex;
-            min-height: 90vh;
+            min-height: calc(100vh - 70px);
+            overflow: visible; /* fix: tránh cắt dropdown */
         }
 
         aside {
-            width: 220px;
-            background: #1f2937;
-            color: #f3f4f6;
-            padding: 20px 0;
+            width: 230px;
+            background: var(--sidebar-bg);
+            color: var(--text-light);
             display: flex;
             flex-direction: column;
+            padding: 20px 0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
         aside h2 {
             text-align: center;
-            font-size: 1.1em;
-            margin-bottom: 10px;
+            color: var(--text-muted);
+            font-size: 0.95em;
+            margin-bottom: 12px;
         }
 
-        aside a {
-            color: #d1d5db;
+        aside a, summary {
+            color: var(--text-light);
             text-decoration: none;
             padding: 10px 20px;
             display: block;
-            border-left: 4px solid transparent;
             transition: 0.3s;
+            border-left: 4px solid transparent;
+            font-size: 0.95em;
+            cursor: pointer;
         }
 
-        aside a:hover, aside a.active {
-            background: #374151;
+        aside a:hover, summary:hover, aside a.active {
+            background: var(--sidebar-hover);
+            border-left-color: var(--color-primary);
             color: #fff;
-            border-left-color: #3b82f6;
+        }
+
+        details.menu-group summary::-webkit-details-marker { display: none; }
+
+        .submenu {
+            background: #1f2937;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .submenu a {
+            padding-left: 45px;
+            font-size: 0.9em;
+            border-left: none;
         }
 
         main {
             flex: 1;
+            background: var(--main-bg);
+            margin: 20px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
             padding: 25px;
-            background: #fff;
-            margin: 15px;
-            border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
         }
 
         footer {
             text-align: center;
-            padding: 10px;
-            background-color: #e5e7eb;
+            padding: 15px;
             color: #6b7280;
+            font-size: 0.9em;
         }
+
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
 <body>
 <header>
-    🌸 <strong>Hệ thống quản lý nhân viên</strong>
+    <div class="header-left">
+        🌸 <strong>Hệ thống quản lý nhân viên</strong>
+    </div>
+
+    <div class="header-right" x-data="{ open: false }" x-cloak>
+        <button @click="open = !open" class="account-btn">
+            👤 <c:out value="${sessionScope.user.username}" />
+        </button>
+
+        <div x-show="open" @click.away="open = false"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-1"
+             class="dropdown">
+            <a href="${pageContext.request.contextPath}/account/profile">🔧 Thông tin cá nhân</a>
+            <a href="${pageContext.request.contextPath}/logout">🚪 Đăng xuất</a>
+        </div>
+    </div>
 </header>
 
 <div class="container">
-    <!-- SIDEBAR -->
-    <aside>
-        <h2>Menu</h2>
-        <a href="${pageContext.request.contextPath}/dashboard" 
-           class="${pageTitle == 'Dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-        <a href="${pageContext.request.contextPath}/employee/list" 
-           class="${pageTitle == 'Nhân viên' ? 'active' : ''}">👥 Nhân viên</a>
-        <a href="${pageContext.request.contextPath}/request/list" 
-           class="${pageTitle == 'Đơn nghỉ phép' ? 'active' : ''}">📝 Đơn nghỉ phép</a>
-        <a href="${pageContext.request.contextPath}/logout">🚪 Đăng xuất</a>
-    </aside>
+    <aside class="sidebar">
+    <h2>MENU</h2>
 
-    <!-- MAIN CONTENT -->
+    <!-- Dashboard có menu con -->
+    <details class="menu-group" ${pageTitle == 'Dashboard' ? 'open' : ''}>
+        <summary>🏠 Dashboard</summary>
+        <a href="${pageContext.request.contextPath}/debug">🧩 Debug</a>
+        <a href="${pageContext.request.contextPath}/controller/dashboard">🛠 Controller Dashboard</a>
+    </details>
+    <!-- Đơn nghỉ phép -->
+    <details class="menu-group" ${pageTitle == 'Đơn nghỉ phép' ? 'open' : ''}>
+        <summary>📝 Đơn nghỉ phép</summary>
+        <a href="${pageContext.request.contextPath}/request/create"
+           class="${pageTitle == 'Tạo đơn' ? 'active' : ''}">➕ Tạo đơn</a>
+        <a href="${pageContext.request.contextPath}/request/list"
+           class="${pageTitle == 'Danh sách đơn' ? 'active' : ''}">📋 Danh sách</a>
+        <a href="${pageContext.request.contextPath}/calendar"
+           class="${pageTitle == 'Lịch nghỉ' ? 'active' : ''}">📅 Lịch nghỉ</a>
+    </details>
+
+</aside>
+
     <main>
         <jsp:include page="${contentPage}" />
     </main>

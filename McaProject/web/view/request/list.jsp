@@ -1,10 +1,4 @@
 <%-- 
-    Document   : list
-    Created on : Oct 30, 2025, 1:19:02 PM
-    Author     : Hiro
---%>
-
-<%-- 
     Document   : list.jsp
     Created on : Oct 30, 2025
     Author     : Hiro
@@ -14,7 +8,7 @@
 <%@ page import="java.util.*, model.LeaveRequest" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<!-- Giữ toàn bộ CSS riêng cho list -->
+<!-- ================== CSS ================== -->
 <style>
     header.list-header {
         background: #1d7484;
@@ -120,6 +114,21 @@
         color: white;
     }
 
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        margin-left: 5px;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+        color: #fff;
+    }
+
     .message {
         margin: 10px 2rem;
         padding: 10px 15px;
@@ -166,6 +175,7 @@
     }
 </style>
 
+<!-- ================== NỘI DUNG TRANG ================== -->
 <div x-data="{ showMsg: true }">
     <header class="list-header">
         <h1>📅 Danh sách đơn nghỉ phép</h1>
@@ -206,7 +216,7 @@
         <button type="submit">🔍 Lọc</button>
     </form>
 
-    <!-- Ngày phép -->
+    <!-- Ngày phép còn lại -->
     <c:choose>
         <c:when test="${remainingDays > 0}">
             <p class="remaining good">✅ Bạn còn ${remainingDays} ngày nghỉ phép.</p>
@@ -240,6 +250,11 @@
                 <td>
                     <c:if test="${r.status == 'Pending'}">
                         <a href="${pageContext.request.contextPath}/request/edit?id=${r.id}" class="btn-edit">✏️ Sửa</a>
+                        <a href="${pageContext.request.contextPath}/request/delete?action=delete&id=${r.id}" 
+                           class="btn-delete"
+                           onclick="return confirm('Bạn có chắc muốn xóa đơn nghỉ phép này không?');">
+                           🗑️ Xóa
+                        </a>
                     </c:if>
                 </td>
             </tr>

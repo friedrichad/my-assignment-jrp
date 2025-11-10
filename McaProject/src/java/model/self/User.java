@@ -7,19 +7,19 @@ package model.self;
 import model.BaseObject;
 import model.Employee;
 import java.util.ArrayList;
-
 /**
  *
  * @author Hiro
  */
-public class User extends BaseObject {
-
+public class User extends BaseObject{
     private String disname;
     private String account;
     private String password;
     private Employee employee;
     private ArrayList<Role> roles = new ArrayList<>();
     private boolean isActive;
+
+    
 
     public String getDisname() {
         return disname;
@@ -61,24 +61,24 @@ public class User extends BaseObject {
         this.roles = roles;
     }
 
-    public boolean isIsActive() {
+    public boolean isActive() {
         return isActive;
     }
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
     }
-
     public boolean hasRole(String roleName) {
-        if (roles == null || roles.isEmpty() || roleName == null) {
-            return false;
-        }
-        for (Role r : roles) {
-            if (r.getRoleName().equalsIgnoreCase(roleName)) {
-                return true;
-            }
-        }
+    if (roles == null || roles.isEmpty() || roleName == null) {
         return false;
     }
+    for (Role r : roles) {
+        if (r.getRoleName().equalsIgnoreCase(roleName)) {
+            return true;
+        }
+    }
+    return false;
+}
 
+    
 }

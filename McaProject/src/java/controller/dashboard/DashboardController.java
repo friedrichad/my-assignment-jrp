@@ -29,8 +29,8 @@ public class DashboardController extends BaseAuthorizationController {
 
         System.out.println("=== [DashboardController] processGet START ===");
         System.out.println("User: " + (user != null ? user.getDisname() : "null"));
-        System.out.println("Employee ID: " +
-                (user != null && user.getEmployee() != null ? user.getEmployee().getId() : "null"));
+        System.out.println("Employee ID: "
+                + (user != null && user.getEmployee() != null ? user.getEmployee().getId() : "null"));
 
         // --- Lấy parameter tìm kiếm, lọc, phân trang ---
         String search = req.getParameter("search");
@@ -79,7 +79,9 @@ public class DashboardController extends BaseAuthorizationController {
         System.out.println("Forwarding to: /view/controller/dashboard.jsp");
         System.out.println("=== [DashboardController] processGet END ===");
 
-        req.getRequestDispatcher("/view/controller/dashboard.jsp").forward(req, resp);
+        req.setAttribute("pageTitle", "Dashboard");
+        req.setAttribute("contentPage", "/view/controller/dashboard.jsp");
+        req.getRequestDispatcher("/view/include/layout.jsp").forward(req, resp);
     }
 
     @Override

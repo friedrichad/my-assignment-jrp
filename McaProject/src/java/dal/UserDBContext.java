@@ -229,7 +229,128 @@ public void updateDivision(int empId, String divisionName) {
         e.printStackTrace();
     }
 }
+public boolean changePassword(int userId, String currentPass, String newPass) {
+    try {
+        String sqlCheck = "SELECT password FROM [User] WHERE uid = ?";
+        PreparedStatement stmCheck = connection.prepareStatement(sqlCheck);
+        stmCheck.setInt(1, userId);
+        ResultSet rs = stmCheck.executeQuery();
 
+        if (rs.next()) {
+            String storedPass = rs.getString("password");
+            if (!storedPass.equals(currentPass)) { // sau này nên hash password nhé
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        // ⚠️ Sửa chỗ này
+        String sqlUpdate = "UPDATE [User] SET password = ? WHERE uid = ?";
+        PreparedStatement stmUpdate = connection.prepareStatement(sqlUpdate);
+        stmUpdate.setString(1, newPass);
+        stmUpdate.setInt(2, userId);
+        stmUpdate.executeUpdate();
+
+        return true;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+public boolean deactivateAccount(int userId) {
+    String sql = "UPDATE [User] SET is_active = 0 WHERE uid = ?";
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setInt(1, userId);
+        int rows = stm.executeUpdate();
+        return rows > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+ public void updateUserStatusByEmployeeId(int employeeId, boolean isActive) {
+    String sql = """
+        UPDATE u
+        SET u.is_active = ?
+        FROM [User] u
+        INNER JOIN Matching m ON u.uid = m.uid
+        WHERE m.eid = ?
+    """;
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setBoolean(1, isActive);
+        stm.setInt(2, employeeId);
+        stm.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+    /** Kiểm tra xem User có phải Admin không (tránh vô hiệu hóa Admin) **/
+    public boolean isAdminByEmployeeId(int employeeId) {
+        String sql = """
+            SELECT COUNT(*) AS count
+            FROM [User] u
+            JOIN Matching m ON u.uid = m.uid
+            JOIN UserRole ur ON u.uid = ur.uid
+            JOIN Role r ON ur.rid = r.rid
+            WHERE m.eid = ? AND r.rolename = 'Admin'
+        """;
+
+        try (PreparedStatement stm = connection.prepareStatement(sql)) {
+            stm.setInt(1, employeeId);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+   public boolean getUserStatusByEmployeeId(int employeeId) {
+    String sql = """
+        SELECT u.is_active
+        FROM [User] u
+        INNER JOIN Matching m ON u.uid = m.uid
+        WHERE m.eid = ?
+    """;
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setInt(1, employeeId);
+        try (ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getBoolean("is_active");
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    // Không tìm thấy mapping -> trả false (hoặc true tùy policy; mình chọn false an toàn)
+    return false;
+}
+
+public boolean isEmployeeAdmin(int employeeId) {
+    String sql = """
+        SELECT COUNT(*) AS total
+        FROM [User] u
+        INNER JOIN Matching m ON u.uid = m.uid
+        INNER JOIN UserRole ur ON u.uid = ur.uid
+        INNER JOIN Role r ON ur.rid = r.rid
+        WHERE m.eid = ? AND LOWER(r.rolename) = 'admin'
+    """;
+    try (PreparedStatement stm = connection.prepareStatement(sql)) {
+        stm.setInt(1, employeeId);
+        try (ResultSet rs = stm.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("total") > 0;
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return false;
+}
 
 
     @Override

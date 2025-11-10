@@ -22,10 +22,10 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Nếu đã đăng nhập -> chuyển về trang chủ
+        // Nếu đã đăng nhập -> chuyển về trang /request/agenda
         HttpSession session = request.getSession();
         if (session.getAttribute("auth") != null) {
-            response.sendRedirect("home");
+            response.sendRedirect(request.getContextPath() + "/request/agenda");
         } else {
             request.getRequestDispatcher("view/auth/login.jsp").forward(request, response);
         }
@@ -42,14 +42,13 @@ public class LoginServlet extends HttpServlet {
         userDB.closeConnection(); // Đóng kết nối DB
 
         if (user != null) {
-
             HttpSession session = request.getSession();
             session.setAttribute("auth", user);
-            response.sendRedirect("home");
+            // ✅ Chuyển hướng đến trang agenda
+            response.sendRedirect(request.getContextPath() + "/request/agenda");
         } else {
             request.setAttribute("error", "Incorrect username or password!");
             request.getRequestDispatcher("view/auth/login.jsp").forward(request, response);
-
         }
     }
 }

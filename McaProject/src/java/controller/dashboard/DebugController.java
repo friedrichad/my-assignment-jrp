@@ -23,7 +23,7 @@ public class DebugController extends HttpServlet {
         User user = (User) request.getSession().getAttribute("auth");
 
         if (user == null) {
-            response.getWriter().println("<h3 style='color:red'>User chưa đăng nhập!</h3>");
+            response.getWriter().println("<h3 style='color:red'>User is not logged yet!</h3>");
             return;
         }
 
@@ -45,6 +45,7 @@ public class DebugController extends HttpServlet {
         request.setAttribute("logs", logs);
         request.setAttribute("user", user);
 
-        request.getRequestDispatcher("view/debug.jsp").forward(request, response);
+        request.setAttribute("contentPage", "/view/debug.jsp");
+        request.getRequestDispatcher("/view/include/layout.jsp").forward(request, response);
     }
 }

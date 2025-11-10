@@ -56,13 +56,17 @@
         cursor: pointer;
         white-space: nowrap;
     }
-    .filter-bar button:hover { background: #2563eb; }
+    .filter-bar button:hover {
+        background: #2563eb;
+    }
     .filter-bar a {
         color: #dc2626;
         text-decoration: none;
         font-weight: 500;
     }
-    .filter-bar a:hover { text-decoration: underline; }
+    .filter-bar a:hover {
+        text-decoration: underline;
+    }
 
     /* CARD CONTAINER */
     .card {
@@ -95,7 +99,9 @@
         text-decoration: none;
         font-weight: 500;
     }
-    .card-nav a:hover { text-decoration: underline; }
+    .card-nav a:hover {
+        text-decoration: underline;
+    }
 
     /* TABLE SCROLL */
     .table-container {
@@ -104,7 +110,8 @@
         -webkit-overflow-scrolling: touch;
     }
     .table-container::-webkit-scrollbar {
-        width: 6px; height: 6px;
+        width: 6px;
+        height: 6px;
     }
     .table-container::-webkit-scrollbar-track {
         background: #f3f4f6;
@@ -164,9 +171,21 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .leave-approved { background: #ecfdf5; border-left-color: #10b981; color: #065f46; }
-    .leave-pending { background: #fffbeb; border-left-color: #f59e0b; color: #92400e; }
-    .leave-rejected { background: #fef2f2; border-left-color: #ef4444; color: #991b1b; }
+    .leave-approved {
+        background: #ecfdf5;
+        border-left-color: #10b981;
+        color: #065f46;
+    }
+    .leave-pending {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+    .leave-rejected {
+        background: #fef2f2;
+        border-left-color: #ef4444;
+        color: #991b1b;
+    }
 
     /* LIST TABLE */
     .list-table {
@@ -186,7 +205,9 @@
         padding: 0.75rem 1rem;
         border-bottom: 1px solid #e5e7eb;
     }
-    .list-table tr:hover { background: #f9fafb; }
+    .list-table tr:hover {
+        background: #f9fafb;
+    }
     .status-badge {
         display: inline-block;
         padding: 0.25rem 0.5rem;
@@ -194,9 +215,18 @@
         font-weight: 600;
         border-radius: 9999px;
     }
-    .status-approved { background: #d1fae5; color: #065f46; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-rejected { background: #fee2e2; color: #991b1b; }
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
 
     /* INFO & PAGINATION */
     .info-text {
@@ -224,15 +254,33 @@
         text-align: center;
         font-size: 0.875rem;
     }
-    .pagination a:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
-    .pagination .current { background: #3b82f6; color: white; font-weight: bold; }
+    .pagination a:hover {
+        background: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+    .pagination .current {
+        background: #3b82f6;
+        color: white;
+        font-weight: bold;
+    }
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
-        .filter-bar { flex-direction: column; align-items: stretch; }
-        .filter-bar input[type="text"], .filter-bar input[type="date"] { min-width: 100%; }
-        .calendar-table td { height: 70px; font-size: 0.75rem; }
-        .leave-item { font-size: 0.7rem; }
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .filter-bar input[type="text"], .filter-bar input[type="date"] {
+            min-width: 100%;
+        }
+        .calendar-table td {
+            height: 70px;
+            font-size: 0.75rem;
+        }
+        .leave-item {
+            font-size: 0.7rem;
+        }
     }
 </style>
 
@@ -311,7 +359,10 @@
             <table class="list-table">
                 <thead>
                     <tr>
-                        <c:if test="${isManager}"><th>Employee</th></c:if>
+                        <c:if test="${isManager}">
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            </c:if>
                         <th>Type</th>
                         <th>From</th>
                         <th>To</th>
@@ -324,6 +375,7 @@
                     <c:forEach var="leave" items="${leaves}">
                         <tr>
                             <c:if test="${isManager}">
+                                <td>${leave.employee.id}</td>
                                 <td>${leave.employee.employeeName}</td>
                             </c:if>
                             <td>${leave.leaveTypeName}</td>
@@ -334,9 +386,10 @@
                             <td>${leave.reason}</td>
                         </tr>
                     </c:forEach>
+
                     <c:if test="${empty leaves}">
                         <tr>
-                            <td colspan="${isManager ? 7 : 6}" style="text-align:center; color:#9ca3af; padding:2rem;">
+                            <td colspan="${isManager ? 8 : 6}" style="text-align:center; color:#9ca3af; padding:2rem;">
                                 No leave requests match your filters.
                             </td>
                         </tr>

@@ -18,6 +18,15 @@ public class Employee extends BaseObject {
     private Division division;
     private Employee supervisor;
     private ArrayList<Employee> subordinates;
+    private boolean active;
+
+public boolean isActive() {
+    return active;
+}
+
+public void setActive(boolean active) {
+    this.active = active;
+}
 
     public String getEmployeeName() {
         return employeeName;

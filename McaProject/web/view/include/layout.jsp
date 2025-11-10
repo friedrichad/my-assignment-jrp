@@ -195,8 +195,9 @@
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 translate-y-1"
              class="dropdown">
-            <a href="${pageContext.request.contextPath}/account/profile">🔧 Thông tin cá nhân</a>
-            <a href="${pageContext.request.contextPath}/logout">🚪 Đăng xuất</a>
+            <a href="${pageContext.request.contextPath}/account/profile">Thông tin cá nhân</a>
+            <a href="${pageContext.request.contextPath}/account/security">Bảo mật</a>
+            <a href="${pageContext.request.contextPath}/logout">Đăng xuất</a>
         </div>
     </div>
 </header>
@@ -218,7 +219,7 @@
            class="${pageTitle == 'Tạo đơn' ? 'active' : ''}">➕ Tạo đơn</a>
         <a href="${pageContext.request.contextPath}/request/list"
            class="${pageTitle == 'Danh sách đơn' ? 'active' : ''}">📋 Danh sách</a>
-        <a href="${pageContext.request.contextPath}/calendar"
+        <a href="${pageContext.request.contextPath}/request/agenda"
            class="${pageTitle == 'Lịch nghỉ' ? 'active' : ''}">📅 Lịch nghỉ</a>
     </details>
 
